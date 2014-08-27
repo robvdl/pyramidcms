@@ -1,0 +1,11 @@
+# Python related
+*.pyc
+*.egg-info
+dist
+build
+
+# Editor and IDE related
+.idea
+
+# Local sqlite database
+pyramidcms.db
