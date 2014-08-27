@@ -12,7 +12,9 @@ planning stages of the project.
 Setting up a development environment::
 
     mkvirtualenv pyramidcms -p /usr/bin/python3
+    git clone git@github.com:robvdl/pyramidcms.git
     cd pyramidcms
     ./setup.py develop
     pcms_initdb
     pserve development.ini
+
