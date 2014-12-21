@@ -3,13 +3,14 @@ from pyramid.view import view_config
 
 from sqlalchemy.exc import DBAPIError
 
-from pyramidcms.models import DBSession, MyModel
+from pyramidcms.models import DBSession
+from pyramidcms.models.auth import User
 
 
 @view_config(route_name='home', renderer='index.jinja2')
 def my_view(request):
     try:
-        one = DBSession.query(MyModel).filter_by(name='one').first()
+        one = DBSession.query(User).filter_by(username='admin').first()
     except DBAPIError:
         return Response(conn_err_msg, content_type='text/plain', status_int=500)
     return {'one': one, 'project': 'pyramidcms'}
