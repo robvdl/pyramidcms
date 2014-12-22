@@ -1,10 +1,10 @@
 import hashlib
 
-from pyramidcms.models import Base, DBSession
-
 from sqlalchemy import ForeignKey
 from sqlalchemy import Column, Integer, String, Boolean, Table, DateTime
 from sqlalchemy.orm import relationship
+
+from pyramidcms.models import Base, DBSession
 
 # bridge tables
 group_permission_table = Table(
