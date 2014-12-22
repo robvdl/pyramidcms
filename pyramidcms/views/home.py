@@ -1,6 +1,5 @@
 from pyramid.response import Response
 from pyramid.view import view_config
-
 from sqlalchemy.exc import DBAPIError
 
 from pyramidcms.models import DBSession

@@ -30,4 +30,4 @@ def main(argv=sys.argv):
     with transaction.manager:
         admin_user = User(username='admin', superuser=True)
         admin_user.set_password('admin')
-        DBSession.add(admin_user)
+        admin_user.save()

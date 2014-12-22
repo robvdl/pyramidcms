@@ -1,6 +1,7 @@
 from pyramid.config import Configurator
 from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.authorization import ACLAuthorizationPolicy
+from pyramid.session import UnencryptedCookieSessionFactoryConfig
 from sqlalchemy import engine_from_config
 
 from pyramidcms.models import DBSession, Base
@@ -17,13 +18,17 @@ def main(global_config, **settings):
     Base.metadata.bind = engine
 
     # setup security policies
+    secret_key = settings['session.secret']
     authn_policy = AuthTktAuthenticationPolicy(
-        settings['session.secret'],
+        secret_key,
         http_only=True,
         callback=groupfinder,
         hashalg='sha512'
     )
     authz_policy = ACLAuthorizationPolicy()
+
+    # FIXME: use something more secure for sessions (Redis or Beaker)
+    session_factory = UnencryptedCookieSessionFactoryConfig(secret_key)
 
     # setup the Configurator
     config = Configurator(
@@ -31,6 +36,7 @@ def main(global_config, **settings):
         authentication_policy=authn_policy,
         authorization_policy=authz_policy,
         root_factory=RootFactory,
+        session_factory=session_factory
     )
 
     # static routes, these should be served by nginx or apache in production
@@ -38,6 +44,8 @@ def main(global_config, **settings):
 
     # routing table
     config.add_route('home', '/')
+    config.add_route('login', '/login')
+    config.add_route('logout', '/logout')
     config.scan()
 
     # start app

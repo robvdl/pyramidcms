@@ -1,12 +1,12 @@
 <html>
 
 <head>
-    <title>PyramidCMS</title>
+    <title>PyramidCMS{% if title %} - {{ title }}{% endif %}</title>
 </head>
 
 <body>
-    {% block main %}
-    {% endblock %}
+    {% block main %}{% endblock %}
+    <p>Status: Logged {% if view.logged_in %}in{% else %}out{% endif %}</p>
 </body>
 
 </html>
