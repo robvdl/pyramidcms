@@ -4,7 +4,7 @@ from sqlalchemy import ForeignKey
 from sqlalchemy import Column, Integer, String, Boolean, Table, DateTime
 from sqlalchemy.orm import relationship
 
-from pyramidcms.models import Base, DBSession
+from pyramidcms.models import Model, Base, DBSession
 
 # bridge tables
 group_permission_table = Table(
@@ -46,7 +46,7 @@ class PermissionManager(object):
         return DBSession.query(Permission).count()
 
 
-class Permission(Base):
+class Permission(Model):
     """
     Based on the Django auth.Permission model, but with some key differences:
 
@@ -56,18 +56,11 @@ class Permission(Base):
     """
 
     __tablename__ = 'permission'
-    id = Column(Integer, primary_key=True)
     name = Column(String(50), unique=True)
     description = Column(String(255))
 
     # model-manager class
     objects = PermissionManager()
-
-    def delete(self):
-        self.objects.filter(id=self.id).delete()
-
-    def save(self):
-        DBSession.add(self)
 
 
 class GroupManager(object):
@@ -92,24 +85,17 @@ class GroupManager(object):
         return DBSession.query(Group).count()
 
 
-class Group(Base):
+class Group(Model):
     """
     Based on the Django auth.Group model, this model is basically the same.
     """
 
     __tablename__ = 'group'
-    id = Column(Integer, primary_key=True)
     name = Column(String(100), unique=True)
     permissions = relationship('Permission', secondary=group_permission_table)
 
     # model-manager class
     objects = GroupManager()
-
-    def delete(self):
-        self.objects.filter(id=self.id).delete()
-
-    def save(self):
-        DBSession.add(self)
 
 
 class UserManager(object):
@@ -134,7 +120,7 @@ class UserManager(object):
         return DBSession.query(User).count()
 
 
-class User(Base):
+class User(Model):
     """
     Based on the Django auth.User model, but with some key differences:
 
@@ -144,7 +130,6 @@ class User(Base):
     """
 
     __tablename__ = 'user'
-    id = Column(Integer, primary_key=True)
     username = Column(String(50), nullable=False)
     first_name = Column(String(50))
     last_name = Column(String(50))
@@ -176,9 +161,3 @@ class User(Base):
         # TODO: SHA512 is OK but the hashes are huge (and why field size is 200)
         # TODO: add support for salt.
         self.password = hashlib.sha512(password.encode('utf-8')).hexdigest()
-
-    def delete(self):
-        self.objects.filter(id=self.id).delete()
-
-    def save(self):
-        DBSession.add(self)
