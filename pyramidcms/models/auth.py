@@ -4,7 +4,7 @@ from sqlalchemy import ForeignKey
 from sqlalchemy import Column, Integer, String, Boolean, Table, DateTime
 from sqlalchemy.orm import relationship
 
-from pyramidcms.models import Base, Model, ModelManager
+from pyramidcms.models import Base, Model
 
 # bridge tables
 group_permission_table = Table(
@@ -33,9 +33,6 @@ class Permission(Model):
     name = Column(String(50), unique=True)
     description = Column(String(255))
 
-    # model-manager class
-    objects = ModelManager()
-
 
 class Group(Model):
     """
@@ -45,9 +42,6 @@ class Group(Model):
     __tablename__ = 'group'
     name = Column(String(100), unique=True)
     permissions = relationship('Permission', secondary=group_permission_table)
-
-    # model-manager class
-    objects = ModelManager()
 
 
 class User(Model):
@@ -70,9 +64,6 @@ class User(Model):
     date_joined = Column(DateTime)
     last_login = Column(DateTime)
     groups = relationship('Group', secondary=user_group_table)
-
-    # model-manager class
-    objects = ModelManager()
 
     def __init__(self, username, first_name=None, last_name=None, email=None, superuser=False):
         self.username = username
