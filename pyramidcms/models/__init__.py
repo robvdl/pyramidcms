@@ -21,11 +21,39 @@ class BaseModel(object):
     # This makes shared model code a bit easier to deal with.
     id = Column(Integer, primary_key=True)
 
+    def __init__(self):
+        self.objects.model = self
+
     def delete(self):
         self.objects.filter(id=self.id).delete()
 
     def save(self):
         DBSession.add(self)
+
+
+class ModelManager(object):
+    """
+    Base model manager class for all models.
+    """
+
+    def __init__(self):
+        self.model = None
+
+    def all(self):
+        return DBSession.query(self.model)
+
+    def create(self, *args, **kwargs):
+        obj = self.model(*args, **kwargs)
+        obj.save()
+
+    def filter(self, **kwargs):
+        return DBSession.query(self.model).filter_by(**kwargs)
+
+    def get(self, **kwargs):
+        return self.filter(**kwargs).first()
+
+    def count(self):
+        return DBSession.query(self.model).count()
 
 
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))

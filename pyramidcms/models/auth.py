@@ -4,7 +4,7 @@ from sqlalchemy import ForeignKey
 from sqlalchemy import Column, Integer, String, Boolean, Table, DateTime
 from sqlalchemy.orm import relationship
 
-from pyramidcms.models import Model, Base, DBSession
+from pyramidcms.models import Base, Model, ModelManager
 
 # bridge tables
 group_permission_table = Table(
@@ -18,32 +18,6 @@ user_group_table = Table(
     Column('user_id', Integer, ForeignKey('user.id'), primary_key=True),
     Column('group_id', Integer, ForeignKey('group.id'), primary_key=True)
 )
-
-
-# TODO: there is a lot of boilerplate in the models and model manager classes
-# that are repeated for each model, we need a way to abstract this into a
-# common base class (just called ModelManager), before we get too many models.
-
-class PermissionManager(object):
-    """
-    A Django-style model-manager class for the Permission model.
-    """
-
-    def all(self):
-        return DBSession.query(Permission)
-
-    def create(self, *args, **kwargs):
-        permission = Permission(*args, **kwargs)
-        permission.save()
-
-    def filter(self, **kwargs):
-        return DBSession.query(Permission).filter_by(**kwargs)
-
-    def get(self, **kwargs):
-        return self.filter(**kwargs).first()
-
-    def count(self):
-        return DBSession.query(Permission).count()
 
 
 class Permission(Model):
@@ -60,29 +34,7 @@ class Permission(Model):
     description = Column(String(255))
 
     # model-manager class
-    objects = PermissionManager()
-
-
-class GroupManager(object):
-    """
-    A Django-style model-manager class for the Group model.
-    """
-
-    def all(self):
-        return DBSession.query(Group)
-
-    def create(self, *args, **kwargs):
-        group = Group(*args, **kwargs)
-        group.save()
-
-    def filter(self, **kwargs):
-        return DBSession.query(Group).filter_by(**kwargs)
-
-    def get(self, **kwargs):
-        return self.filter(**kwargs).first()
-
-    def count(self):
-        return DBSession.query(Group).count()
+    objects = ModelManager()
 
 
 class Group(Model):
@@ -95,29 +47,7 @@ class Group(Model):
     permissions = relationship('Permission', secondary=group_permission_table)
 
     # model-manager class
-    objects = GroupManager()
-
-
-class UserManager(object):
-    """
-    A Django-style model-manager class for the User model.
-    """
-
-    def all(self):
-        return DBSession.query(User)
-
-    def create(self, *args, **kwargs):
-        user = User(*args, **kwargs)
-        user.save()
-
-    def filter(self, **kwargs):
-        return DBSession.query(User).filter_by(**kwargs)
-
-    def get(self, **kwargs):
-        return self.filter(**kwargs).first()
-
-    def count(self):
-        return DBSession.query(User).count()
+    objects = ModelManager()
 
 
 class User(Model):
@@ -142,7 +72,7 @@ class User(Model):
     groups = relationship('Group', secondary=user_group_table)
 
     # model-manager class
-    objects = UserManager()
+    objects = ModelManager()
 
     def __init__(self, username, first_name=None, last_name=None, email=None, superuser=False):
         self.username = username
@@ -161,3 +91,9 @@ class User(Model):
         # TODO: SHA512 is OK but the hashes are huge (and why field size is 200)
         # TODO: add support for salt.
         self.password = hashlib.sha512(password.encode('utf-8')).hexdigest()
+
+
+# TODO: how can we bootstrap this?
+Permission.objects.model = Permission
+Group.objects.model = Group
+User.objects.model = User
