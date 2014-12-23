@@ -28,7 +28,6 @@ class Permission(Model):
     * Renamed "name" to "description", also for consistency.
     * The "content_type" field is not used yet so is removed.
     """
-
     name = Column(String(50), unique=True)
     description = Column(String(255))
 
@@ -37,7 +36,6 @@ class Group(Model):
     """
     Based on the Django auth.Group model, this model is basically the same.
     """
-
     name = Column(String(100), unique=True)
     permissions = relationship('Permission', secondary=group_permission_table)
 
@@ -50,7 +48,6 @@ class User(Model):
     * is_superuser and is_active just drop the "is_" prefix
     * permissions are only stored on the group to reduce the complexity
     """
-
     username = Column(String(50), nullable=False)
     first_name = Column(String(50))
     last_name = Column(String(50))

@@ -40,13 +40,12 @@ class BaseModel(object):
     available to every model automatically.
 
     see: http://docs.sqlalchemy.org/en/rel_0_9/orm/extensions/declarative.html#augmenting-the-base
+
+    By default every model uses id for the primary key, this makes shared
+    model code a bit easier to deal with.
     """
-
-    objects = ModelManager()
-
-    # By default every model uses id for the primary key.
-    # This makes shared model code a bit easier to deal with.
     id = Column(Integer, primary_key=True)
+    objects = ModelManager()
 
     def __init__(self):
         self.objects.model = self
