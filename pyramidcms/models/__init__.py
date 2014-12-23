@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.declarative import declarative_base, declared_attr
 from sqlalchemy.orm import scoped_session, sessionmaker
 from zope.sqlalchemy import ZopeTransactionExtension
 
@@ -50,6 +50,14 @@ class BaseModel(object):
 
     def __init__(self):
         self.objects.model = self
+
+    @declared_attr
+    def __tablename__(cls):
+        """
+        This gives a default table name which is just the model class
+        name as lower case, can still be overridden however.
+        """
+        return cls.__name__.lower()
 
     def delete(self):
         self.objects.filter(id=self.id).delete()

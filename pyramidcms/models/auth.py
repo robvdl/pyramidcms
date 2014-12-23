@@ -29,7 +29,6 @@ class Permission(Model):
     * The "content_type" field is not used yet so is removed.
     """
 
-    __tablename__ = 'permission'
     name = Column(String(50), unique=True)
     description = Column(String(255))
 
@@ -39,7 +38,6 @@ class Group(Model):
     Based on the Django auth.Group model, this model is basically the same.
     """
 
-    __tablename__ = 'group'
     name = Column(String(100), unique=True)
     permissions = relationship('Permission', secondary=group_permission_table)
 
@@ -53,7 +51,6 @@ class User(Model):
     * permissions are only stored on the group to reduce the complexity
     """
 
-    __tablename__ = 'user'
     username = Column(String(50), nullable=False)
     first_name = Column(String(50))
     last_name = Column(String(50))
