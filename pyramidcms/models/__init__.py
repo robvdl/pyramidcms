@@ -40,7 +40,7 @@ class BaseModel(object):
     instance using the cls argument.  This makes any methods defined here
     available to every model automatically.
 
-    see: http://docs.sqlalchemy.org/en/rel_0_9/orm/extensions/declarative.html#augmenting-the-base
+    see: http://docs.sqlalchemy.org/en/rel_0_9/orm/extensions/declarative/mixins.html#augmenting-the-base
 
     By default every model uses id for the primary key, this makes shared
     model code a bit easier to deal with.
