@@ -66,11 +66,6 @@ class BaseModel(object):
         mapper = inspect(self.__class__)
         return [column.key for column in mapper.attrs]
 
-    def apply(self, **kwargs):
-        for field in self.fields:
-            if field in kwargs:
-                setattr(self, field, kwargs[field])
-
     def delete(self):
         self.objects.filter(id=self.id).delete()
 

@@ -31,9 +31,6 @@ class Permission(Model):
     name = Column(String(50), unique=True)
     description = Column(String(255))
 
-    def __init__(self, **kwargs):
-        self.apply(**kwargs)
-
 
 class Group(Model):
     """
@@ -41,9 +38,6 @@ class Group(Model):
     """
     name = Column(String(100), unique=True)
     permissions = relationship('Permission', secondary=group_permission_table)
-
-    def __init__(self, **kwargs):
-        self.apply(**kwargs)
 
 
 class User(Model):
@@ -67,9 +61,6 @@ class User(Model):
     date_joined = Column(DateTime)
     last_login = Column(DateTime)
     groups = relationship('Group', secondary=user_group_table)
-
-    def __init__(self, **kwargs):
-        self.apply(**kwargs)
 
     def check_password(self, password):
         return self.password == hashlib.sha512(password.encode('utf-8')).hexdigest()
