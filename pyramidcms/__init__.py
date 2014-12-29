@@ -5,7 +5,7 @@ from pyramid.session import UnencryptedCookieSessionFactoryConfig
 from sqlalchemy import engine_from_config
 
 from pyramidcms.models import DBSession, Base
-from pyramidcms.security import groupfinder, RootFactory
+from pyramidcms.security import groupfinder, get_current_user, RootFactory
 
 
 def main(global_config, **settings):
@@ -21,14 +21,17 @@ def main(global_config, **settings):
     secret_key = settings['session.secret']
     authn_policy = AuthTktAuthenticationPolicy(
         secret_key,
-        http_only=True,
+        http_only=True,       # cookie has HTTP_ONLY so isn't available to JS
         callback=groupfinder,
         hashalg='sha512'
     )
     authz_policy = ACLAuthorizationPolicy()
 
     # FIXME: use something more secure for sessions (Redis or Beaker)
-    session_factory = UnencryptedCookieSessionFactoryConfig(secret_key)
+    session_factory = UnencryptedCookieSessionFactoryConfig(
+        secret_key,
+        cookie_httponly=True  # cookie has HTTP_ONLY so isn't available to JS
+    )
 
     # setup the Configurator
     config = Configurator(
@@ -41,6 +44,9 @@ def main(global_config, **settings):
 
     # static routes, these should be served by nginx or apache in production
     config.add_static_view('static', 'static', cache_max_age=3600)
+
+    # this makes request.user available
+    config.add_request_method(get_current_user, 'user', reify=True)
 
     # routing table
     config.add_route('home', '/')

@@ -22,7 +22,7 @@ user_group_table = Table(
 
 class Permission(Model):
     """
-    Based on the Django auth.Permission model, but with some key differences:
+    Based on the Django auth.Permission model, but with some differences:
 
     * Renamed "codename" to "name" which is more consistent with other models
     * Renamed "name" to "description", also for consistency.
@@ -30,6 +30,9 @@ class Permission(Model):
     """
     name = Column(String(50), unique=True)
     description = Column(String(255))
+
+    def __init__(self, **kwargs):
+        self.apply(**kwargs)
 
 
 class Group(Model):
@@ -39,32 +42,34 @@ class Group(Model):
     name = Column(String(100), unique=True)
     permissions = relationship('Permission', secondary=group_permission_table)
 
+    def __init__(self, **kwargs):
+        self.apply(**kwargs)
+
 
 class User(Model):
     """
-    Based on the Django auth.User model, but with some key differences:
+    Based on the Django auth.User model, but with some differences:
 
-    * is_staff has been dropped, a permission is used instead for admin access
-    * is_superuser and is_active just drop the "is_" prefix
+    * is_staff becomes is_admin which gives basic admin access
     * permissions are only stored on the group to reduce the complexity
+
+    Note that when "is_superuser" is set, this implies you have "is_admin"
+    as well to the permission system, even if is_admin is false on the user.
     """
     username = Column(String(50), nullable=False)
     first_name = Column(String(50))
     last_name = Column(String(50))
     email = Column(String(100))
     password = Column(String(200))
-    superuser = Column(Boolean, default=False)
-    active = Column(Boolean, default=True)
+    is_active = Column(Boolean, default=True)
+    is_admin = Column(Boolean, default=False)
+    is_superuser = Column(Boolean, default=False)
     date_joined = Column(DateTime)
     last_login = Column(DateTime)
     groups = relationship('Group', secondary=user_group_table)
 
-    def __init__(self, username, first_name=None, last_name=None, email=None, superuser=False):
-        self.username = username
-        self.first_name = first_name
-        self.last_name = last_name
-        self.email = email
-        self.superuser = superuser
+    def __init__(self, **kwargs):
+        self.apply(**kwargs)
 
     def check_password(self, password):
         return self.password == hashlib.sha512(password.encode('utf-8')).hexdigest()

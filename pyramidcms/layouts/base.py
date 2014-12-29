@@ -1,7 +1,4 @@
 from pyramid.decorator import reify
-from pyramid.security import authenticated_userid
-
-from pyramidcms.models.auth import User
 
 
 class BaseLayout(object):
@@ -18,15 +15,13 @@ class BaseLayout(object):
         self.request = request
         self.session = request.session
         self.settings = request.registry.settings
-        username = authenticated_userid(self.request)
-        self.user = User.objects.get(username=username)
 
     @reify
     def logged_in(self):
         """
         Template property that returns True if a user is logged in.
         """
-        return self.user is not None
+        return self.request.user is not None
 
     @reify
     def csrf_token(self):

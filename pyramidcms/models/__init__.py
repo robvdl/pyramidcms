@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer
+from sqlalchemy import Column, Integer, inspect
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
 from sqlalchemy.orm import scoped_session, sessionmaker
 from zope.sqlalchemy import ZopeTransactionExtension
@@ -18,6 +18,7 @@ class ModelManager(object):
     def create(self, *args, **kwargs):
         obj = self.model(*args, **kwargs)
         obj.save()
+        return obj
 
     def filter(self, **kwargs):
         return DBSession.query(self.model).filter_by(**kwargs)
@@ -45,10 +46,10 @@ class BaseModel(object):
     model code a bit easier to deal with.
     """
     id = Column(Integer, primary_key=True)
-    objects = ModelManager()
 
-    def __init__(self):
-        self.objects.model = self
+    @declared_attr
+    def objects(cls):
+        return ModelManager()
 
     @declared_attr
     def __tablename__(cls):
@@ -57,6 +58,18 @@ class BaseModel(object):
         name as lower case, can still be overridden however.
         """
         return cls.__name__.lower()
+
+    @property
+    def fields(self):
+        # NOTE: what is the penalty of running inspect? is caching of the
+        # mapper object going to be of any use here or not?
+        mapper = inspect(self.__class__)
+        return [column.key for column in mapper.attrs]
+
+    def apply(self, **kwargs):
+        for field in self.fields:
+            if field in kwargs:
+                setattr(self, field, kwargs[field])
 
     def delete(self):
         self.objects.filter(id=self.id).delete()

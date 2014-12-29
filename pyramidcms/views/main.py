@@ -1,18 +1,23 @@
-from pyramid.response import Response
 from pyramid.view import view_config
+from pyramid.response import Response
 from sqlalchemy.exc import DBAPIError
 
-from pyramidcms.models import DBSession
+from pyramidcms.layouts.base import BaseLayout
 from pyramidcms.models.auth import User
 
 
-@view_config(route_name='home', renderer='index.jinja2')
-def my_view(request):
-    try:
-        one = DBSession.query(User).filter_by(username='admin').first()
-    except DBAPIError:
-        return Response(conn_err_msg, content_type='text/plain', status_int=500)
-    return {'one': one, 'project': 'pyramidcms'}
+class MainViews(BaseLayout):
+
+    @view_config(route_name='home', renderer='index.jinja2', permission='admin')
+    def home(request):
+        """
+        This is just a placeholder for a dummy homepage and will be removed.
+        """
+        try:
+            user = User.objects.get(username='admin')
+        except DBAPIError:
+            return Response(conn_err_msg, content_type='text/plain', status_int=500)
+        return {'user': user, 'project': 'pyramidcms'}
 
 
 conn_err_msg = """\

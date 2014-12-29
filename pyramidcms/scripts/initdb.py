@@ -7,7 +7,7 @@ from pyramid.paster import get_appsettings, setup_logging
 from pyramid.scripts.common import parse_vars
 
 from pyramidcms.models import DBSession, Base
-from pyramidcms.models.auth import User
+from pyramidcms.models.auth import User, Group
 
 
 def usage(argv):
@@ -28,6 +28,10 @@ def main(argv=sys.argv):
     DBSession.configure(bind=engine)
     Base.metadata.create_all(engine)
     with transaction.manager:
-        admin_user = User(username='admin', superuser=True)
+        g1 = Group.objects.create(name='Group 1')
+        g2 = Group.objects.create(name='Group 2')
+        admin_user = User(username='admin', is_superuser=True, is_admin=True)
         admin_user.set_password('admin')
+        admin_user.groups.append(g1)
+        admin_user.groups.append(g2)
         admin_user.save()
