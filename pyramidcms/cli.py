@@ -109,10 +109,11 @@ def main(argv=sys.argv):
 
     # main parser object, we create another one for the command we are running
     parser = argparse.ArgumentParser()
-    parser.add_argument('--ini', metavar='ini_file', type=str, nargs=1, default=['pyramidcms.ini'],
-        help="Location of the config file (defaults to pyramidcms.ini)".format(app))
+    parser.add_argument('--ini', metavar='ini_file', type=str, nargs=1,
+                        default=['pyramidcms.ini'],
+                        help="Location of the config file (defaults to pyramidcms.ini)".format(app))
     parser.add_argument('command', type=str, nargs=argparse.REMAINDER,
-        help="The command to run, type {} help <command> for more help.".format(app))
+                        help="The command to run, type {} help <command> for more help.".format(app))
 
     args = parser.parse_args(argv[1:])
     if args.command:

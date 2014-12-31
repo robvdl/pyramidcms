@@ -19,11 +19,12 @@ class Command(BaseCommand):
     def setup_args(self, parser):
         # first positional argument is required
         parser.add_argument('environment_type', type=str,
-            help='Type of environment and .ini file to create: dev or prod')
+                            help='Type of environment and .ini file to create: dev or prod')
 
         # second argument is optional
-        parser.add_argument('output_file', type=str, nargs='?', default='pyramidcms.ini',
-            help='Type output .ini file name, defaults to pyramidcms.ini')
+        parser.add_argument('output_file', type=str, nargs='?',
+                            default='pyramidcms.ini',
+                            help='Type output .ini file name, defaults to pyramidcms.ini')
 
     def secret_key_generator(self, length):
         """
