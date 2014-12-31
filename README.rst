@@ -15,6 +15,7 @@ Setting up a development environment::
     git clone git@github.com:robvdl/pyramidcms.git
     cd pyramidcms
     ./setup.py develop
-    pcms_initdb development.ini
-    pserve development.ini
+    pcms_config dev
+    pcms_initdb pyramidcms.ini
+    gunicorn --paste pyramidcms.ini
 

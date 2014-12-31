@@ -6,34 +6,29 @@
 [app:main]
 use = egg:pyramidcms
 
-pyramid.reload_templates = true
+pyramid.reload_templates = {{ debug|lower }}
 pyramid.debug_authorization = false
 pyramid.debug_notfound = false
 pyramid.debug_routematch = false
 pyramid.default_locale_name = en
 pyramid.includes =
     pyramid_jinja2
-    pyramid_debugtoolbar
     pyramid_tm
+    {% if debug %}pyramid_debugtoolbar{% endif %}
 
-sqlalchemy.url = sqlite:///%(here)s/pyramidcms.db
-
-# Change these to turn on debugtoolbar
-debugtoolbar.hosts = 127.0.0.1 ::1
-debugtoolbar.enabled = false
+sqlalchemy.url = {{ db_url }}
 
 # Jinja2 settings and templates directory
 jinja2.directories = pyramidcms:templates
 jinja2.extensions =
     jinja2.ext.with_
 
-# This should never be revealed in a real production environment
-# for now anything will do since the cms is not ready for production anyway
-session.secret = thisshouldbesecret
+# Keep this key safe, the key here is generated for you and is unique
+session.secret = {{ secret_key }}
 
-# By default, the toolbar only appears for clients from IP addresses
-# '127.0.0.1' and '::1'.
-# debugtoolbar.hosts = 127.0.0.1 ::1
+{% if debug %}# Change these to turn on debugtoolbar
+debugtoolbar.hosts = 127.0.0.1 ::1
+debugtoolbar.enabled = false{% endif %}
 
 ###
 # wsgi server configuration
@@ -41,9 +36,9 @@ session.secret = thisshouldbesecret
 
 [server:main]
 use = egg:gunicorn#main
-host = 0.0.0.0
-port = 8000
-workers = 1
+host = {{ server_ip }}
+port = {{ server_port }}
+workers = {{ num_workers }}
 
 ###
 # logging configuration
@@ -64,12 +59,12 @@ level = INFO
 handlers = console
 
 [logger_pyramidcms]
-level = DEBUG
+level = INFO
 handlers =
 qualname = pyramidcms
 
 [logger_sqlalchemy]
-level = INFO
+level = {% if debug %}INFO{% else %}WARN{% endif %}
 handlers =
 qualname = sqlalchemy.engine
 # "level = INFO" logs SQL queries.

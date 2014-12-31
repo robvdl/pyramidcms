@@ -1,4 +1,5 @@
 # Python related
+__pycache__
 *.pyc
 *.egg-info
 dist
@@ -9,3 +10,6 @@ build
 
 # Local sqlite database
 pyramidcms.db
+
+# Local development .ini file
+pyramidcms.ini
