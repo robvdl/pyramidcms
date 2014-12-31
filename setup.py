@@ -38,7 +38,6 @@ setup(
     [paste.app_factory]
     main = pyramidcms:main
     [console_scripts]
-    pcms_initdb = pyramidcms.scripts.initdb:main
-    pcms_config = pyramidcms.scripts.config:main
+    pcms = pyramidcms.cli:main
     """,
 )
