@@ -4,7 +4,7 @@ from sqlalchemy import ForeignKey
 from sqlalchemy import Column, Integer, String, Boolean, Table, DateTime
 from sqlalchemy.orm import relationship
 
-from pyramidcms.models import Base, Model
+from pyramidcms.models import Base, Model, ModelManager, DBSession
 
 # bridge tables
 group_permission_table = Table(
@@ -20,16 +20,32 @@ user_group_table = Table(
 )
 
 
+class PermissionManager(ModelManager):
+    """
+    Model-manager class for the Permission model.
+    """
+
+    def list_by_group(self):
+        """
+        Returns a list of tuples (Permission, Group), only returns rows where
+        permissions are used by a group.
+        """
+        return DBSession.query(Permission, Group).join((Permission, Group.permissions))
+
+
 class Permission(Model):
     """
     Based on the Django auth.Permission model, but with some differences:
 
-    * Renamed "codename" to "name" which is more consistent with other models
-    * Renamed "name" to "description", also for consistency.
     * The "content_type" field is not used yet so is removed.
     """
-    name = Column(String(50), unique=True)
-    description = Column(String(255))
+    name = Column(String(255))
+    codename = Column(String(50), unique=True)
+
+    objects = PermissionManager()
+
+    def __str__(self):
+        return self.description
 
 
 class Group(Model):
@@ -38,6 +54,9 @@ class Group(Model):
     """
     name = Column(String(100), unique=True)
     permissions = relationship('Permission', secondary=group_permission_table)
+
+    def __str__(self):
+        return self.name
 
 
 class User(Model):
@@ -62,6 +81,14 @@ class User(Model):
     last_login = Column(DateTime)
     groups = relationship('Group', secondary=user_group_table)
 
+    def __str__(self):
+        if self.first_name and self.last_name:
+            return self.first_name + ' ' + self.last_name
+        elif self.first_name:
+            return self.first_name
+        else:
+            return self.username
+
     def check_password(self, password):
         return self.password == hashlib.sha512(password.encode('utf-8')).hexdigest()
 
@@ -72,6 +99,13 @@ class User(Model):
         # TODO: SHA512 is OK but the hashes are huge (and why field size is 200)
         # TODO: add support for salt.
         self.password = hashlib.sha512(password.encode('utf-8')).hexdigest()
+
+    def get_permissions(self):
+        """
+        Returns a list of Permissions for this user based on their Groups.
+        """
+        group_ids = [group.id for group in self.groups]
+        return DBSession.query(Permission).join((Permission, Group.permissions)).filter(Group.id.in_(group_ids))
 
 
 # TODO: how can we bootstrap this?
