@@ -16,10 +16,9 @@ Setting up a development environment::
     cd pyramidcms
     ./setup.py develop
 
-
 Once installed, this will create a local pyramidcms.ini file for development::
 
-    pcms config dev
+    pcms create_config dev
 
 Once that is done, this will create the database tables::
 
