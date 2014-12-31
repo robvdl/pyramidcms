@@ -7,7 +7,7 @@ from pyramid.paster import get_appsettings, setup_logging
 from sqlalchemy import engine_from_config
 
 from pyramidcms.models import DBSession
-from pyramidcms.exceptions import CommandException
+from pyramidcms.exceptions import CommandError
 
 
 class BaseCommand(object):
@@ -122,7 +122,7 @@ def main(argv=sys.argv):
             if len(args.command) == 2:
                 command = args.command[1]
             else:
-                raise CommandException('{} help command requires exactly one argument'.format(app))
+                raise CommandError('"{} help" command requires exactly one argument'.format(app))
         else:
             command = args.command[0]
 
@@ -134,8 +134,11 @@ def main(argv=sys.argv):
         except FileNotFoundError:
             settings = {}
 
-        # load class and either execute command or show help
-        module = importlib.import_module('pyramidcms.commands.' + command)
+        try:
+            module = importlib.import_module('pyramidcms.commands.' + command)
+        except ImportError:
+            raise CommandError('"{} {}" command does not exist.'.format(app, command))
+
         cmd = module.Command(app, command, settings)
         if args.command[0] == 'help':
             cmd.help()

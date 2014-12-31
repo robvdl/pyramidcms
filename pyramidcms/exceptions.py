@@ -1,2 +1,2 @@
-class CommandException(Exception):
+class CommandError(Exception):
     pass
