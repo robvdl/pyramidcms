@@ -30,7 +30,7 @@ class PermissionManager(ModelManager):
         Returns a list of tuples (Permission, Group), only returns rows where
         permissions are used by a group.
         """
-        return DBSession.query(Permission, Group).join((Permission, Group.permissions))
+        return DBSession.query(Permission, Group).join(Group.permissions)
 
 
 class Permission(Model):
@@ -105,7 +105,7 @@ class User(Model):
         Returns a list of Permissions for this user based on their Groups.
         """
         group_ids = [group.id for group in self.groups]
-        return DBSession.query(Permission).join((Permission, Group.permissions)).filter(Group.id.in_(group_ids))
+        return DBSession.query(Permission).join(Group.permissions).filter(Group.id.in_(group_ids))
 
 
 # TODO: how can we bootstrap this?
