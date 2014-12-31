@@ -47,10 +47,8 @@ class BaseCommand(object):
         # settings is an empty dict if the .ini file doesn't exist,
         # not every command requires the .ini file to exist first.
         if self.settings:
-            self.engine = engine_from_config(self.settings, 'sqlalchemy.')
-            DBSession.configure(bind=self.engine)
-        else:
-            self.engine = None
+            engine = engine_from_config(self.settings, 'sqlalchemy.')
+            DBSession.configure(bind=engine)
 
     def run(self, *args):
         """

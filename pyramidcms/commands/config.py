@@ -6,6 +6,9 @@ from jinja2 import Template
 from pyramidcms.cli import BaseCommand
 from pyramidcms.exceptions import CommandException
 
+# location of config templates
+TEMPLATE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../conf'))
+
 
 class Command(BaseCommand):
     """
@@ -29,9 +32,7 @@ class Command(BaseCommand):
         return codecs.encode(os.urandom(length), 'hex').decode('utf-8')
 
     def handle(self, args):
-        # FIXME: relative path will break when run from another location
-        # to work out conf path based on the path of this source file later on
-        with open('conf/pyramidcms.ini.jinja2') as f:
+        with open(os.path.join(TEMPLATE_DIR, 'pyramidcms.ini.jinja2')) as f:
             template = Template(f.read())
 
         env = args.environment_type.lower()
