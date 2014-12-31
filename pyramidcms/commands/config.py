@@ -4,6 +4,7 @@ import codecs
 from jinja2 import Template
 
 from pyramidcms.cli import BaseCommand
+from pyramidcms.exceptions import CommandException
 
 
 class Command(BaseCommand):
@@ -53,8 +54,7 @@ class Command(BaseCommand):
                 'num_workers': 4
             }
         else:
-            # TODO: we might need a special CommandError exception like Django
-            raise ValueError('Unknown environment type: ' + env)
+            raise CommandException('Unknown environment type: ' + env)
 
         with open(args.output_file, 'w') as f:
             f.write(template.render(config))

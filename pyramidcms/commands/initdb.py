@@ -1,10 +1,7 @@
 import transaction
 
-from sqlalchemy import engine_from_config
-from pyramid.paster import get_appsettings, setup_logging
-
 from pyramidcms.cli import BaseCommand
-from pyramidcms.models import DBSession, Base
+from pyramidcms.models import Base
 from pyramidcms.models.auth import User, Group, Permission
 
 
@@ -14,18 +11,8 @@ class Command(BaseCommand):
     note that this is intended to be replaced by Alembic later.
     """
 
-    def setup_args(self, parser):
-        parser.add_argument('config_file', type=str,
-            help='Location of the pyramidcms.ini config file')
-
     def handle(self, args):
-        setup_logging(args.config_file)
-        settings = get_appsettings(args.config_file, options={})
-        engine = engine_from_config(settings, 'sqlalchemy.')
-        DBSession.configure(bind=engine)
-        Base.metadata.create_all(engine)
-
-        # NOTE: this is mostly test data here for now and will be removed
+        Base.metadata.create_all(self.engine)
         with transaction.manager:
             perm_create = Permission.objects.create(codename='create', name='User can create item')
             perm_edit = Permission.objects.create(codename='edit', name='User can edit content')

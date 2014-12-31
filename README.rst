@@ -15,7 +15,17 @@ Setting up a development environment::
     git clone git@github.com:robvdl/pyramidcms.git
     cd pyramidcms
     ./setup.py develop
+
+
+Once installed, this will create a local pyramidcms.ini file for development::
+
     pcms config dev
-    pcms initdb pyramidcms.ini
+
+Once that is done, this will create the database tables::
+
+    pcms initdb
+
+When everything is installed, this will start the web application::
+
     gunicorn --paste pyramidcms.ini
 
