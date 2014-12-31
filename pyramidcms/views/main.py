@@ -9,7 +9,7 @@ from pyramidcms.models.auth import User
 class MainViews(BaseLayout):
 
     @view_config(route_name='home', renderer='index.jinja2', permission='create')
-    def home(request):
+    def home(self):
         """
         This is just a placeholder for a dummy homepage and will be removed.
         """
