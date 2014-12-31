@@ -24,7 +24,7 @@ class Command(BaseCommand):
         # second argument is optional
         parser.add_argument('output_file', type=str, nargs='?',
                             default='pyramidcms.ini',
-                            help='Type output .ini file name, defaults to pyramidcms.ini')
+                            help='The output .ini file name, defaults to pyramidcms.ini')
 
     def secret_key_generator(self, length):
         """
