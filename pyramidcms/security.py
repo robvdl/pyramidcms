@@ -1,6 +1,6 @@
-from pyramid.security import Allow
+from pyramid.security import Allow, ALL_PERMISSIONS
 
-from pyramidcms.models.auth import User
+from pyramidcms.models.auth import User, Permission
 
 
 def groupfinder(username, request):
@@ -52,9 +52,15 @@ class RootFactory(object):
     # 'is_superuser' and 'is_admin' are not groups but flags on the User
     # Actual groups start with "group:" e.g. (Allow, 'group:Editors', 'edit')
     __acl__ = [
-        (Allow, 'is_superuser', 'superuser'),
+        (Allow, 'is_superuser', ALL_PERMISSIONS),
         (Allow, 'is_admin', 'admin')
     ]
 
     def __init__(self, request):
         self.request = request
+
+        # This builds a list of custom permissions users may have
+        # added to any Groups to the __acl__ table on each request.
+        # FIXME: this is a place we should probably be doing some caching
+        for permission, group in Permission.objects.list_by_group():
+            self.__acl__.append((Allow, 'group:' + group.name, permission.codename))
