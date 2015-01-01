@@ -1,10 +1,7 @@
-import os
-import codecs
-
 from sqlalchemy import ForeignKey
 from sqlalchemy import Column, Integer, String, Boolean, Table, DateTime
 from sqlalchemy.orm import relationship
-from pbkdf2 import crypt
+from passlib.hash import pbkdf2_sha256
 
 from pyramidcms.models import Base, Model, ModelManager, DBSession
 
@@ -92,14 +89,14 @@ class User(Model):
             return self.username
 
     def check_password(self, password):
-        return self.password == crypt(password, self.password)
+        return pbkdf2_sha256.verify(password, self.password)
 
     def set_password(self, password):
         """
         Change the password for this user.
         """
-        salt = codecs.encode(os.urandom(10), 'hex').decode('utf-8')
-        self.password = crypt(password, salt)
+        # pbkdf2 sha256 with a salt and 10k iterations is what Django uses
+        self.password = pbkdf2_sha256.encrypt(password, rounds=10000)
 
     def get_permissions(self):
         """
