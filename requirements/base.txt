@@ -6,3 +6,4 @@ SQLAlchemy==0.9.7
 transaction==1.4.3
 zope.sqlalchemy==0.7.5
 gunicorn==19.1.1
+pbkdf2==1.3

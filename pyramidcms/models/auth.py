@@ -1,8 +1,10 @@
-import hashlib
+import os
+import codecs
 
 from sqlalchemy import ForeignKey
 from sqlalchemy import Column, Integer, String, Boolean, Table, DateTime
 from sqlalchemy.orm import relationship
+from pbkdf2 import crypt
 
 from pyramidcms.models import Base, Model, ModelManager, DBSession
 
@@ -73,7 +75,7 @@ class User(Model):
     first_name = Column(String(50))
     last_name = Column(String(50))
     email = Column(String(100))
-    password = Column(String(200))
+    password = Column(String(100))
     is_active = Column(Boolean, default=True)
     is_admin = Column(Boolean, default=False)
     is_superuser = Column(Boolean, default=False)
@@ -90,15 +92,14 @@ class User(Model):
             return self.username
 
     def check_password(self, password):
-        return self.password == hashlib.sha512(password.encode('utf-8')).hexdigest()
+        return self.password == crypt(password, self.password)
 
     def set_password(self, password):
         """
         Change the password for this user.
         """
-        # TODO: SHA512 is OK but the hashes are huge (and why field size is 200)
-        # TODO: add support for salt.
-        self.password = hashlib.sha512(password.encode('utf-8')).hexdigest()
+        salt = codecs.encode(os.urandom(10), 'hex').decode('utf-8')
+        self.password = crypt(password, salt)
 
     def get_permissions(self):
         """
