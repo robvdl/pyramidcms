@@ -76,7 +76,7 @@ class BaseModel(object):
     def objects(cls):
         """
         The objects property returns the default ModelManager() instance,
-        though this can be overridden in models if desiered.
+        though this can be overridden in models if desired.
 
         :param cls: The model class
         :return:
