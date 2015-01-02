@@ -1,18 +1,17 @@
 import transaction
 
 from pyramidcms.cli import BaseCommand
-from pyramidcms.models import Base, DBSession
 from pyramidcms.models.auth import User, Group, Permission
 
 
 class Command(BaseCommand):
     """
-    Command that creates the database tables and loads some test data,
-    note that this is intended to be replaced by Alembic later.
+    For now this just installs some test data.
+
+    Later this will load generic JSON fixtures.
     """
 
     def handle(self, args):
-        Base.metadata.create_all(DBSession.bind)
         with transaction.manager:
             perm_create = Permission.objects.create(codename='create', name='User can create item')
             perm_edit = Permission.objects.create(codename='edit', name='User can edit content')

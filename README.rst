@@ -20,9 +20,16 @@ Once installed, this will create a local pyramidcms.ini file for development::
 
     pcms create_config dev
 
-Once that is done, this will create the database tables::
+Once that is done, run Alembic to create the database tables::
 
-    pcms initdb
+    alembic upgrade head
+
+Now load the temporary test data::
+
+    pcms loaddata
+
+Note that in the future the loadata command will load generic JSON fixtures,
+but for now it just inserts some test users, groups and permissions.
 
 When everything is installed, this will start the web application::
 

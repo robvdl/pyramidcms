@@ -68,7 +68,7 @@ class User(Model):
     Note that when "is_superuser" is set, this implies you have "is_admin"
     as well to the permission system, even if is_admin is false on the user.
     """
-    username = Column(String(50), nullable=False)
+    username = Column(String(50), nullable=False, unique=True)
     first_name = Column(String(50))
     last_name = Column(String(50))
     email = Column(String(100))
