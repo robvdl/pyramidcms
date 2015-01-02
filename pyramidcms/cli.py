@@ -57,7 +57,7 @@ class BaseCommand(object):
         This calls parser.parse_args() then calls the handle() method
         which should be implemented by the command itself.
 
-        :param *args: a list of arguments after command but not the command itself
+        :param args: a list of arguments following the command
         """
         args = self.parser.parse_args(args)
         self.handle(args)
@@ -66,7 +66,7 @@ class BaseCommand(object):
         """
         Print help for this command.
 
-        This is the same as running "pcms command -h".
+        This is the same as running "pcms <command> -h".
         """
         self.parser.print_help()
 
@@ -100,10 +100,13 @@ class BaseCommand(object):
         pass
 
 
-def main(argv=sys.argv):
+def main(argv=None):
     """
     The entry point to all management commands.
     """
+    if argv is None:
+        argv = sys.argv
+
     # app is the name of the cli executable
     app = os.path.basename(os.path.basename(argv[0]))
 
