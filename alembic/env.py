@@ -7,7 +7,7 @@ mainly that we are using two ini files: pyramidcms.ini and alembic.ini
 To avoid having to store duplicate settings in both the alembic.ini
 and pyramidcms.ini files (for example the SQLAlchemy connection URL and
 logging configuration), the settings that were already in pyramidcms.ini
-are now loaded from there instead and removed from alembic.ini.
+are now loaded from there instead and are removed from alembic.ini.
 """
 
 from alembic import context
