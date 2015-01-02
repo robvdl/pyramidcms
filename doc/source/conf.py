@@ -266,3 +266,26 @@ texinfo_documents = [
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'http://docs.python.org/': None}
+
+
+def skip(app, what, name, obj, skip, options):
+    """
+    This filter always skips 'relationship' and always includes '__init__'.
+
+    We do this because we always want to document to constructors, and
+    although adding :special-members: will work too, this also documents
+    other special methods which we may not always want to do.
+
+    The reason we skip the 'relationship' keyword is because there seems
+    to be an issue with models that are importing this from sqlalchemy.orm,
+    it ends up documenting this as well, which is not correct.
+    """
+    if name == '__init__':
+        return False
+    if name == 'relationship':
+        return True
+    return skip
+
+
+def setup(app):
+    app.connect('autodoc-skip-member', skip)

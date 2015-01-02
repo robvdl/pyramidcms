@@ -12,6 +12,12 @@ Contents:
    :maxdepth: 2
 
    cli
+   commands
+   exceptions
+   layouts
+   models
+   views
+   security
 
 Indices and tables
 ==================
