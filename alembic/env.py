@@ -1,23 +1,28 @@
+"""
+Alembic migration environment for PyramidCMS.
+
+Note that there are some differences to a regular Alembic environment,
+mainly that we are using two ini files: pyramidcms.ini and alembic.ini
+
+To avoid having to store duplicate settings in both the alembic.ini
+and pyramidcms.ini files (for example the SQLAlchemy connection URL and
+logging configuration), the settings that were already in pyramidcms.ini
+are now loaded from there instead and removed from alembic.ini.
+"""
+
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 from pyramid.paster import get_appsettings, setup_logging
 
 from pyramidcms.models import Base
-# TODO: these need to be loaded for an import side effect
-# we really need to do something about this, as it is ugly
+
+# TODO: these still need to be loaded for an import side effect
+# we really need to do something about this soon, as it is ugly
 from pyramidcms.models.auth import Permission, Group, User
 
-# this comes from alembic.ini
 alembic_config = context.config
-
-# Some settings such as "sqlalchemy.url" we get from pyramidcms.ini,
-# so we don't need to duplicate the connection url setting in alembic.ini
 pyramid_config_file = alembic_config.get_main_option('pyramid_config_file')
-
-# logging is using pyramid
 setup_logging(pyramid_config_file)
-
-# settings is for the pyramid config and comes from pyramidcms.ini
 app_settings = get_appsettings(pyramid_config_file, options={})
 
 target_metadata = Base.metadata
