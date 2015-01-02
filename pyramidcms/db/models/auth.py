@@ -89,6 +89,9 @@ class User(Model):
             return self.username
 
     def check_password(self, password):
+        """
+        Validate password against hashed password in database.
+        """
         return pbkdf2_sha256.verify(password, self.password)
 
     def set_password(self, password):
