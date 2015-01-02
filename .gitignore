@@ -13,3 +13,6 @@ pyramidcms.db
 
 # Local development .ini file
 pyramidcms.ini
+
+# Sphinx build directory
+doc/build
