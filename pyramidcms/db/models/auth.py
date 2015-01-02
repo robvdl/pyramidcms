@@ -3,7 +3,7 @@ from sqlalchemy import Column, Integer, String, Boolean, Table, DateTime
 from sqlalchemy.orm import relationship
 from passlib.hash import pbkdf2_sha256
 
-from pyramidcms.models import Base, Model, ModelManager, DBSession
+from pyramidcms.db import DBSession, Base, Model, ModelManager
 
 # bridge tables
 group_permission_table = Table(
@@ -104,9 +104,3 @@ class User(Model):
         """
         group_ids = [group.id for group in self.groups]
         return DBSession.query(Permission).join(Group.permissions).filter(Group.id.in_(group_ids))
-
-
-# TODO: how can we bootstrap this?
-Permission.objects.model = Permission
-Group.objects.model = Group
-User.objects.model = User

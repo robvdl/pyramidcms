@@ -1,7 +1,7 @@
 import transaction
 
 from pyramidcms.cli import BaseCommand
-from pyramidcms.models.auth import User, Group, Permission
+from pyramidcms.db.models import User, Group, Permission
 
 
 class Command(BaseCommand):

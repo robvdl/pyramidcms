@@ -4,7 +4,7 @@ from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.session import UnencryptedCookieSessionFactoryConfig
 from sqlalchemy import engine_from_config
 
-from pyramidcms.models import DBSession, Base
+from pyramidcms.db import DBSession, Base
 from pyramidcms.security import groupfinder, get_current_user, RootFactory
 
 

@@ -10,15 +10,13 @@ logging configuration), the settings that were already in pyramidcms.ini
 are now loaded from there instead and are removed from alembic.ini.
 """
 
-from alembic import context
+import logging
+
 from sqlalchemy import engine_from_config, pool
 from pyramid.paster import get_appsettings, setup_logging
 
-from pyramidcms.models import Base
-
-# TODO: these still need to be loaded for an import side effect
-# we really need to do something about this soon, as it is ugly
-from pyramidcms.models.auth import Permission, Group, User
+from alembic import context
+from pyramidcms.db import Base, models
 
 alembic_config = context.config
 pyramid_config_file = alembic_config.get_main_option('pyramid_config_file')
@@ -26,6 +24,8 @@ setup_logging(pyramid_config_file)
 app_settings = get_appsettings(pyramid_config_file, options={})
 
 target_metadata = Base.metadata
+
+log = logging.getLogger(__name__)
 
 
 def run_migrations_offline():
@@ -70,6 +70,10 @@ def run_migrations_online():
     finally:
         connection.close()
 
+
+log.info('Using models:'.format(models.__all__))
+for cls in models.__all__:
+    log.info(' - {}'.format(cls))
 
 if context.is_offline_mode():
     run_migrations_offline()
