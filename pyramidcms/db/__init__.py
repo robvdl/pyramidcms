@@ -79,7 +79,6 @@ class BaseModel(object):
         though this can be overridden in models if desired.
 
         :param cls: The model class
-        :return:
         """
         return ModelManager()
 
