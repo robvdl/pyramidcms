@@ -133,7 +133,7 @@ def main(argv=None):
         # settings objects will end up an empty dict
         try:
             setup_logging(ini_file)
-            settings = get_appsettings(ini_file, options={})
+            settings = get_appsettings(ini_file)
         except FileNotFoundError:
             settings = {}
 

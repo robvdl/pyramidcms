@@ -21,7 +21,7 @@ from pyramidcms.db import Base, models
 alembic_config = context.config
 pyramid_config_file = alembic_config.get_main_option('pyramid_config_file')
 setup_logging(pyramid_config_file)
-app_settings = get_appsettings(pyramid_config_file, options={})
+app_settings = get_appsettings(pyramid_config_file)
 
 target_metadata = Base.metadata
 
