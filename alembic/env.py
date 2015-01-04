@@ -71,7 +71,7 @@ def run_migrations_online():
         connection.close()
 
 
-log.info('Using models:'.format(models.__all__))
+log.info('Using models:')
 for cls in models.__all__:
     log.info(' - {}'.format(cls))
 
