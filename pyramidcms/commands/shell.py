@@ -1,10 +1,12 @@
 from code import InteractiveConsole
 
 from pyramidcms.cli import BaseCommand
-from pyramidcms.db.models import User, Group, Permission
 
 
 class Command(BaseCommand):
+    """
+    Open an interactive python shell.
+    """
 
     def handle(self, args):
         console = InteractiveConsole(globals())
