@@ -176,7 +176,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('--ini', metavar='ini_file', type=str, nargs=1,
                         default=['pyramidcms.ini'],
-                        help='Location of the config file (defaults to pyramidcms.ini)'.format(app))
+                        help='Location of the config file (defaults to pyramidcms.ini)')
     parser.add_argument('command', type=str, nargs=argparse.REMAINDER,
                         help='The command to run, type {} help <command> for more help.'.format(app))
 
