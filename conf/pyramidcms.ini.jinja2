@@ -2,11 +2,12 @@
 # app configuration
 # http://docs.pylonsproject.org/projects/pyramid/en/latest/narr/environment.html
 ###
+{% set is_dev = env == 'dev' %}
 
 [app:main]
 use = egg:pyramidcms
 
-pyramid.reload_templates = {% if env == 'dev' %}true{% else %}false{% endif %}
+pyramid.reload_templates = {{ is_dev|lower }}
 pyramid.debug_authorization = false
 pyramid.debug_notfound = false
 pyramid.debug_routematch = false
@@ -14,7 +15,7 @@ pyramid.default_locale_name = en
 pyramid.includes =
     pyramid_jinja2
     pyramid_tm
-    {% if env == 'dev' %}pyramid_debugtoolbar{% endif %}
+    {% if is_dev %}pyramid_debugtoolbar{% endif %}
 
 sqlalchemy.url = {{ db_url }}
 
@@ -26,7 +27,7 @@ jinja2.extensions =
 # Keep this key safe, the key here is generated for you and is unique
 session.secret = {{ secret_key }}
 
-{% if env == 'dev' %}# Change these to turn on debugtoolbar
+{% if is_dev %}# Change these to turn on debugtoolbar
 debugtoolbar.hosts = 127.0.0.1 ::1
 debugtoolbar.enabled = false{% endif %}
 
