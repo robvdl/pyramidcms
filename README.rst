@@ -18,7 +18,7 @@ Setting up a development environment::
 
 Once installed, this will create a local pyramidcms.ini file for development::
 
-    pcms create_config dev
+    pcms createconfig dev
 
 Once that is done, run Alembic to create the database tables::
 
