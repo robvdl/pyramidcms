@@ -40,7 +40,7 @@ def run_migrations_offline():
     Calls to context.execute() here emit the given string to the
     script output.
     """
-    url = alembic_config.get_main_option('sqlalchemy.url')
+    url = app_settings['sqlalchemy.url']
     context.configure(url=url, target_metadata=target_metadata)
 
     with context.begin_transaction():
