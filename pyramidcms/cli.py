@@ -100,9 +100,71 @@ class BaseCommand(object):
         pass
 
 
+def get_command(app, args):
+    """
+    Returns the command given an argparse instance.
+
+    The command is normally the first argument, unless the command
+    was "pcms help command" in which case it's the second argument.
+
+    Running "pcms help command" is actually the same as "pcms command -h".
+
+    :param app: The filename (without path) of the command line app
+    :param args: An argparse object containing the parsed arguments
+    :returns: The command (a string) that was parsed from args
+    """
+    if args.command[0] == 'help':
+        if len(args.command) == 2:
+            return args.command[1]
+        else:
+            raise CommandError('"{} help" command requires exactly one argument'.format(app))
+    else:
+        return args.command[0]
+
+
+def load_command(app, command, settings):
+    """
+    Given the command as a string, try to load it as as module
+    from 'pyramidcms.commands.<command>' and if that was successful,
+    instantiates and returns a new instance of that command.
+
+    :param app: The filename (without path) of the command line app
+    :param command: The command to load (string)
+    :param settings: Pyramid settings object:
+    :returns: instance of loaded Command class
+    """
+    try:
+        module = importlib.import_module('pyramidcms.commands.' + command)
+    except ImportError:
+        raise CommandError('"{} {}" command does not exist.'.format(app, command))
+
+    return module.Command(app, command, settings)
+
+
 def main(argv=None):
     """
     The entry point to all management commands.
+
+    In a nutshell, this sets up argparse and gets the command from argv,
+    then tries to load that module dynamically from pyramidcms.commands.<command>,
+    we then get an instance of that command, "cmd" if the module loaded
+    successfully.
+
+    If we ran "pcms command ..." then we run "cmd.run(...)" giving it the
+    remaining arguments.  See the :meth:`BaseCommand.run()` what happens
+    there, but essentially handle() gets called in the command class
+    and is given another argparse instance with the remaining arguments.
+
+    If we ran "pcms help command" however, we show the argparse help page
+    for that command using "cmd.help()", which is actually just the same
+    as running "pcms command -h".
+
+    The pyramidcms.ini file is also loaded and the database connection is
+    established before the command is even run, so that when entering the
+    handle() method of the command, the database is up and Pyramid settings
+    are available under "self.settings".
+
+    :param argv: argv array, if None defaults to sys.argv.
     """
     if argv is None:
         argv = sys.argv
@@ -121,13 +183,7 @@ def main(argv=None):
     args = parser.parse_args(argv[1:])
     if args.command:
         ini_file = args.ini[0]
-        if args.command[0] == 'help':
-            if len(args.command) == 2:
-                command = args.command[1]
-            else:
-                raise CommandError('"{} help" command requires exactly one argument'.format(app))
-        else:
-            command = args.command[0]
+        command = get_command(app, args)
 
         # load .ini file, if this file doesn't exist the
         # settings objects will end up an empty dict
@@ -137,12 +193,7 @@ def main(argv=None):
         except FileNotFoundError:
             settings = {}
 
-        try:
-            module = importlib.import_module('pyramidcms.commands.' + command)
-        except ImportError:
-            raise CommandError('"{} {}" command does not exist.'.format(app, command))
-
-        cmd = module.Command(app, command, settings)
+        cmd = load_command(app, command, settings)
         if args.command[0] == 'help':
             cmd.help()
         else:
