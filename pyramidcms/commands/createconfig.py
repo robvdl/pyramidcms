@@ -37,18 +37,18 @@ class Command(BaseCommand):
             template = Template(f.read())
 
         env = args.environment_type.lower()
-        if env in ('dev', 'development'):
+        if env == 'dev':
             config = {
-                'debug': True,
+                'env': env,
                 'db_url': 'sqlite:///%(here)s/pyramidcms.db',
                 'secret_key': self.secret_key_generator(40),
                 'server_ip': '0.0.0.0',
                 'server_port': '8000',
                 'num_workers': 1
             }
-        elif env in ('prod', 'production'):
+        elif env == 'prod':
             config = {
-                'debug': False,
+                'env': env,
                 'db_url': 'sqlite:///%(here)s/pyramidcms.db',
                 'secret_key': self.secret_key_generator(40),
                 'server_ip': '127.0.0.1',
