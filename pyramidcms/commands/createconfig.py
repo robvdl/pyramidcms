@@ -42,7 +42,7 @@ class Command(BaseCommand):
                 'env': env,
                 'db_url': 'sqlite:///%(here)s/pyramidcms.db',
                 'secret_key': self.secret_key_generator(40),
-                'server_ip': '0.0.0.0',
+                'server_ip': '127.0.0.1',
                 'server_port': '8000',
                 'num_workers': 1
             }
