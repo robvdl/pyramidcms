@@ -1,8 +1,16 @@
 from code import InteractiveConsole
 
-import readline
-
 from pyramidcms.cli import BaseCommand
+
+import os
+
+if os.name == 'nt':
+    import pyreadline
+else:
+    import readline
+
+import rlcompleter
+
 
 
 class Command(BaseCommand):
@@ -11,5 +19,9 @@ class Command(BaseCommand):
     """
 
     def handle(self, args):
-        shell = InteractiveConsole(globals())
+        context = globals().copy()
+        context.update(locals())
+        readline.set_completer(rlcompleter.Completer(context).complete)
+        readline.parse_and_bind('tab: complete')
+        shell = InteractiveConsole(context)
         shell.interact()
