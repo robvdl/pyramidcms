@@ -12,7 +12,6 @@ else:
 import rlcompleter
 
 
-
 class Command(BaseCommand):
     """
     Open an interactive python shell.
