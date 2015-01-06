@@ -64,7 +64,7 @@ handlers =
 qualname = pyramidcms
 
 [logger_sqlalchemy]
-level = {% if debug %}INFO{% else %}WARN{% endif %}
+level = WARN
 handlers =
 qualname = sqlalchemy.engine
 # "level = INFO" logs SQL queries.

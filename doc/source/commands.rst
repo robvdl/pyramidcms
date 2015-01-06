@@ -7,7 +7,7 @@ This module contains all the built-in management commands.
     :members:
 
 createconfig
-=============
+============
 
 .. automodule:: pyramidcms.commands.createconfig
     :members:
