@@ -1,15 +1,8 @@
+import readline
+import rlcompleter
 from code import InteractiveConsole
 
 from pyramidcms.cli import BaseCommand
-
-import os
-
-if os.name == 'nt':
-    import pyreadline
-else:
-    import readline
-
-import rlcompleter
 
 
 class Command(BaseCommand):
