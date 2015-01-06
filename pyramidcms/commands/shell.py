@@ -1,5 +1,7 @@
 from code import InteractiveConsole
 
+import readline
+
 from pyramidcms.cli import BaseCommand
 
 
@@ -9,5 +11,5 @@ class Command(BaseCommand):
     """
 
     def handle(self, args):
-        console = InteractiveConsole(globals())
-        console.interact()
+        shell = InteractiveConsole(globals())
+        shell.interact()
