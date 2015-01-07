@@ -44,9 +44,7 @@ class BaseCommand(object):
         Establishes a connection to the database when the command
         starts up and the .ini file was loaded successfully.
         """
-        # settings is an empty dict if the .ini file doesn't exist,
-        # not every command requires the .ini file to exist first.
-        if self.settings:
+        if 'sqlalchemy.url' in self.settings:
             engine = engine_from_config(self.settings, 'sqlalchemy.')
             DBSession.configure(bind=engine)
 
@@ -169,14 +167,17 @@ def main(argv=None):
     if argv is None:
         argv = sys.argv
 
+    # the default .ini file if none is specified
+    default_ini = 'pyramidcms.ini'
+
     # app is the name of the cli executable
     app = os.path.basename(os.path.basename(argv[0]))
 
     # main parser object, we create another one for the command we are running
     parser = argparse.ArgumentParser()
     parser.add_argument('--ini', metavar='ini_file', type=str, nargs=1,
-                        default=['pyramidcms.ini'],
-                        help='Location of the config file (defaults to pyramidcms.ini)')
+                        default=[default_ini],
+                        help='Location of the config file (defaults to {})'.format(default_ini))
     parser.add_argument('command', type=str, nargs=argparse.REMAINDER,
                         help='The command to run, type {} help <command> for more help.'.format(app))
 
@@ -191,7 +192,9 @@ def main(argv=None):
             setup_logging(ini_file)
             settings = get_appsettings(ini_file)
         except FileNotFoundError:
-            settings = {}
+            # The ini file could not be loaded, but the command might still
+            # want to know it's path so store __file__.
+            settings = {'__file__': default_ini}
 
         cmd = load_command(app, command, settings)
         if args.command[0] == 'help':
