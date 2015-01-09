@@ -8,6 +8,7 @@ import re
 
 
 class Command(BaseCommand):
+
     def parse_url(self):
         connection = dict()
         parameters = re.split(r'[:@/]+', self.settings['sqlalchemy.url'])
