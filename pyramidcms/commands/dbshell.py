@@ -36,7 +36,7 @@ class Command(BaseCommand):
             raise CommandError('Failed to parse sqlalchemy.url connection string')
 
     def load_dbms_shell(self, connection):
-        if connection['dbms'].starthswith('mysql'):
+        if connection['dbms'].startswith('mysql'):
             # lowercase -p means prompt for password in mysql
             # if you leave it out, it will try to login without password
             command = 'mysql -u {username} -h {host} -D {database} -p'.format(**connection)
