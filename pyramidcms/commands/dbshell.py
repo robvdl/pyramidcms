@@ -48,7 +48,7 @@ class Command(BaseCommand):
             raise CommandError('Unsupported DBMS ' + connection['dbms'])
 
         if connection['port']:
-            if connection['dbms'] == 'mysql':
+            if connection['dbms'].startswith('mysql'):
                 command += ' -P ' + connection['port']
             else:
                 command += ' -p ' + connection['port']
