@@ -1,49 +1,60 @@
 import re
-import os
 from subprocess import call
 
 from pyramidcms.cli import BaseCommand
 from pyramidcms.exceptions import CommandError
 
+# Regex to decompose a SQL Alchemy connection URL into it's base components
+RE_DB_URL = re.compile(r'''
+    ^(?P<dbms>[^:]+)                                # dbms
+    ://                                             # ://
+    (?P<username>[^:/@]+)?:?(?P<password>[^:/@]+)?  # username:password
+    @?                                              # @
+    (?P<host>[^:/]+)?:?(?P<port>\d+)?               # host:port
+    /                                               # /
+    (?P<database>.+)$                               # database
+''', re.VERBOSE)
+
 
 class Command(BaseCommand):
+    """
+    Management command to open a database shell.
 
-    def parse_url(self):
-        connection = {}
-        # TODO: if sqlalchemy.url is missing it will crash, we should raise a CommandError
-        parameters = re.split(r'[:@/]+', self.settings['sqlalchemy.url'])
-        connection.update({'dbms': parameters[0], 'username': parameters[1], 'host':parameters[3]})
-        # Get the port number if available.
-        if len(parameters) == 6:
-            connection.update({'port': parameters[4], 'database': parameters[5]})
+    At the moment only PostgreSQL, MySQL and SQLite are supported.
+    """
+
+    def parse_url(self, url):
+        match = RE_DB_URL.match(url)
+        if match:
+            connection = match.groupdict()
+            if connection['host'] is None:
+                connection['host'] = 'localhost'
+            if connection['port'] is not None:
+                connection['port'] = int(connection['port'])
+            return connection
         else:
-            connection.update({'database': parameters[4]})
-        return connection
+            raise CommandError('Failed to parse sqlalchemy.url connection string')
 
     def load_dbms_shell(self, connection):
-        dbms = connection.get('dbms', '')
-        if dbms == 'mysql':
-            command = 'mysql -u {username} -h {host} -D {database}'.format(**connection)
-        elif dbms == 'postgresql':
+        if connection['dbms'].starthswith('mysql'):
+            # lowercase -p means prompt for password in mysql
+            # if you leave it out, it will try to login without password
+            command = 'mysql -u {username} -h {host} -D {database} -p'.format(**connection)
+        elif connection['dbms'].startswith('postgresql'):
             command = 'psql -U {username} -h {host} -d {database}'.format(**connection)
-        elif dbms == 'sqlite':
-            # FIXME: this is not using os.path.dirname to strip off the filename of this .py file (__file__)
-            # FIXME: we shouldn't have to add .db, as the full filename of the database should be in the connection string
-            command = 'sqlite3 ' + os.path.abspath(os.path.join(__file__, '../..')) + '/' + \
-                      connection.get('database') + '.db'
+        elif connection['dbms'].startswith('sqlite'):
+            command = 'sqlite3 ' + connection['database']
         else:
-            raise CommandError('Unsupported DBMS ' + dbms)
+            raise CommandError('Unsupported DBMS ' + connection['dbms'])
 
-        if 'port' in connection:
-            if dbms.startswith('mysql'):
-                port_arg = ' -P '
+        if connection['port']:
+            if connection['dbms'] == 'mysql':
+                command += ' -P ' + connection['port']
             else:
-                port_arg = ' -p '
-            port_number = port_arg + connection.get('port')
-            command.join(port_number)
+                command += ' -p ' + connection['port']
 
         call(command, shell=True)
 
     def handle(self, args):
-        connection = self.parse_url()
+        connection = self.parse_url(self.settings['sqlalchemy.url'])
         self.load_dbms_shell(connection)

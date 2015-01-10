@@ -23,3 +23,9 @@ shell
 
 .. automodule:: pyramidcms.commands.shell
     :members:
+
+dbshell
+=======
+
+.. automodule:: pyramidcms.commands.dbshell
+    :members:
