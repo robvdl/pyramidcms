@@ -5,6 +5,8 @@ from pyramid.httpexceptions import HTTPFound
 from pyramidcms.layouts.base import BaseLayout
 from pyramidcms.db.models import User
 
+from pyramidcms.forms.auth import LoginForm
+
 
 class AuthViews(BaseLayout):
     """
@@ -15,11 +17,10 @@ class AuthViews(BaseLayout):
     @forbidden_view_config(renderer='login.jinja2')
     def login(self):
         return_url = self.request.POST.get('url', self.request.url)
-
-        # FIXME: this could potentially be a form using WTForms
-        if self.request.method == 'POST':
-            username = self.request.POST.get('username')
-            password = self.request.POST.get('password')
+        form = LoginForm(self.request.POST)
+        if self.request.method == 'POST' and form.validate():
+            username = form.username.data
+            password = form.password.data
             user = User.objects.get(username=username)
             if user and user.check_password(password):
                 headers = remember(self.request, username)
@@ -31,6 +32,7 @@ class AuthViews(BaseLayout):
 
         return {
             'return_url': return_url,
+            'form': form,
         }
 
     @view_config(route_name='logout')
