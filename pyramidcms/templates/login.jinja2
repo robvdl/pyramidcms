@@ -5,8 +5,18 @@
 {% block main %}
     <h1>Login</h1>
     <form action="{{ request.route_path('login') }}" method="POST">
-        <label>Username: <input type="text" placeholder="Username" name="username" autofocus required></label>
-        <label>Password: <input type="password" placeholder="Password" name="password" required></label>
+        {{ form.username.label }} {{ form.username() }}
+        {% if form.username.errors %}
+            {% for error in form.username.errors %}
+                {{ error }}
+            {% endfor %}
+        {% endif %}
+        {{ form.password.label }} {{ form.password() }}
+        {% if form.username.errors %}
+            {% for error in form.username.errors %}
+                {{ error }}
+            {% endfor %}
+        {% endif %}
         <input type="submit" value="Log in">
     </form>
 {% endblock %}
