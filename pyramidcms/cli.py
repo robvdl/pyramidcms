@@ -171,7 +171,7 @@ def main(argv=None):
     default_ini = 'pyramidcms.ini'
 
     # app is the name of the cli executable
-    app = os.path.basename(os.path.basename(argv[0]))
+    app = os.path.basename(argv[0])
 
     # main parser object, we create another one for the command we are running
     parser = argparse.ArgumentParser()
