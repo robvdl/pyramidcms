@@ -1,13 +1,13 @@
 """
 Initial migration
 
-Revision ID: 786ddd0fef
+Revision ID: 169cad6defc
 Revises: 
-Create Date: 2015-01-02 19:53:42.812266
+Create Date: 2015-01-12 22:15:42.166162
 """
 
 # revision identifiers, used by Alembic.
-revision = '786ddd0fef'
+revision = '169cad6defc'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -28,17 +28,10 @@ def upgrade():
         sa.Column('is_active', sa.Boolean(), nullable=True),
         sa.Column('is_admin', sa.Boolean(), nullable=True),
         sa.Column('is_superuser', sa.Boolean(), nullable=True),
-        sa.Column('date_joined', sa.DateTime(), nullable=True),
+        sa.Column('date_joined', sa.DateTime(), server_default=sa.func.now(), nullable=True),
         sa.Column('last_login', sa.DateTime(), nullable=True),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('username')
-    )
-    op.create_table(
-        'group',
-        sa.Column('id', sa.Integer(), nullable=False),
-        sa.Column('name', sa.String(length=100), nullable=True),
-        sa.PrimaryKeyConstraint('id'),
-        sa.UniqueConstraint('name')
     )
     op.create_table(
         'permission',
@@ -49,19 +42,26 @@ def upgrade():
         sa.UniqueConstraint('codename')
     )
     op.create_table(
+        'group',
+        sa.Column('id', sa.Integer(), nullable=False),
+        sa.Column('name', sa.String(length=100), nullable=True),
+        sa.PrimaryKeyConstraint('id'),
+        sa.UniqueConstraint('name')
+    )
+    op.create_table(
         'group_permission',
         sa.Column('group_id', sa.Integer(), nullable=False),
         sa.Column('permission_id', sa.Integer(), nullable=False),
-        sa.ForeignKeyConstraint(['group_id'], ['group.id']),
-        sa.ForeignKeyConstraint(['permission_id'], ['permission.id']),
+        sa.ForeignKeyConstraint(['group_id'], ['group.id'], ),
+        sa.ForeignKeyConstraint(['permission_id'], ['permission.id'], ),
         sa.PrimaryKeyConstraint('group_id', 'permission_id')
     )
     op.create_table(
         'user_group',
         sa.Column('user_id', sa.Integer(), nullable=False),
         sa.Column('group_id', sa.Integer(), nullable=False),
-        sa.ForeignKeyConstraint(['group_id'], ['group.id']),
-        sa.ForeignKeyConstraint(['user_id'], ['user.id']),
+        sa.ForeignKeyConstraint(['group_id'], ['group.id'], ),
+        sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
         sa.PrimaryKeyConstraint('user_id', 'group_id')
     )
 
@@ -69,6 +69,6 @@ def upgrade():
 def downgrade():
     op.drop_table('user_group')
     op.drop_table('group_permission')
-    op.drop_table('permission')
     op.drop_table('group')
+    op.drop_table('permission')
     op.drop_table('user')
