@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, inspect
-from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy.orm import scoped_session, sessionmaker, class_mapper
+from sqlalchemy.orm.collections import InstrumentedList
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
 from zope.sqlalchemy import ZopeTransactionExtension
 
@@ -97,10 +98,7 @@ class BaseModel(object):
 
         Returns a list of strings representing field names in the model.
         """
-        # NOTE: what is the penalty of running inspect? is caching of the
-        # mapper object going to be of any use here or not?
-        mapper = inspect(self.__class__)
-        return [column.key for column in mapper.attrs]
+        return [col.name for col in class_mapper(self.__class__).mapped_table.c]
 
     def delete(self):
         """
@@ -115,6 +113,34 @@ class BaseModel(object):
         This just wraps the DBSession.add() function from SQLAlchemy.
         """
         DBSession.add(self)
+
+    def as_dict(self, full=False):
+        """
+        Returns this model instance as a dictionary.
+
+        Many to many fields are returned as a list of id's unless
+        full=True, in which case it recursively calls as_dict() on
+        the related model instances which returns a list of dicts.
+        """
+        # This gets the normal fields but not many to many
+        fields_dict = {col: getattr(self, col) for col in self.fields}
+
+        # This contains all the fields including m2m fields.
+        mapper = inspect(self.__class__)
+        all_fields = [column.key for column in mapper.attrs]
+
+        # Try to find m2m fields using the set difference,
+        # ensure every field is actually an m2m field.
+        possible_m2m = set(all_fields) - set(self.fields)
+        for field_name in possible_m2m:
+            field = getattr(self, field_name)
+            if type(field) == InstrumentedList:
+                if full:
+                    fields_dict[field_name] = [model.as_dict(True) for model in field]
+                else:
+                    fields_dict[field_name] = [model.id for model in field]
+
+        return fields_dict
 
 
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
