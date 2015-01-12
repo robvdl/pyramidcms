@@ -96,7 +96,7 @@ class BaseModel(object):
         """
         A property that returns all the fields for this model.
 
-        Returns a list of strings representing field names in the model.
+        :returns: a list of strings representing field names in the model.
         """
         return [col.name for col in class_mapper(self.__class__).mapped_table.c]
 
@@ -121,6 +121,9 @@ class BaseModel(object):
         Many to many fields are returned as a list of id's unless
         full=True, in which case it recursively calls as_dict() on
         the related model instances which returns a list of dicts.
+
+        :param full: when true recursively call as_dict() on sub-models.
+        :returns: model instance converted to a dict
         """
         # This gets the normal fields but not many to many
         fields_dict = {col: getattr(self, col) for col in self.fields}

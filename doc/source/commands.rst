@@ -12,6 +12,12 @@ createconfig
 .. automodule:: pyramidcms.commands.createconfig
     :members:
 
+dumpdata
+========
+
+.. automodule:: pyramidcms.commands.dumpdata
+    :members:
+
 loaddata
 ========
 
