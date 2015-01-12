@@ -114,15 +114,6 @@ class BaseModel(object):
         """
         DBSession.add(self)
 
-    def __iter__(self):
-        """
-        The __iter__ method gets called when we run dict(model).
-
-        Using dict(model) is the same as calling model.as_dict().
-        """
-        for item in self.as_dict().items():
-            yield item
-
     def as_dict(self, full=True):
         """
         Returns this model instance as a dictionary.
