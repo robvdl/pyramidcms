@@ -114,7 +114,16 @@ class BaseModel(object):
         """
         DBSession.add(self)
 
-    def as_dict(self, full=False):
+    def __iter__(self):
+        """
+        The __iter__ method gets called when we run dict(model).
+
+        Using dict(model) is the same as calling model.as_dict().
+        """
+        for item in self.as_dict().items():
+            yield item
+
+    def as_dict(self, full=True):
         """
         Returns this model instance as a dictionary.
 
@@ -139,7 +148,7 @@ class BaseModel(object):
             field = getattr(self, field_name)
             if type(field) == InstrumentedList:
                 if full:
-                    fields_dict[field_name] = [model.as_dict(True) for model in field]
+                    fields_dict[field_name] = [model.as_dict() for model in field]
                 else:
                     fields_dict[field_name] = [model.id for model in field]
 
