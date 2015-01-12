@@ -1,13 +1,13 @@
 """
 Initial migration
 
-Revision ID: 169cad6defc
+Revision ID: 4f92a2be560
 Revises: 
-Create Date: 2015-01-12 22:15:42.166162
+Create Date: 2015-01-13 09:01:57.174594
 """
 
 # revision identifiers, used by Alembic.
-revision = '169cad6defc'
+revision = '4f92a2be560'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -17,6 +17,13 @@ import sqlalchemy as sa
 
 
 def upgrade():
+    op.create_table(
+        'group',
+        sa.Column('id', sa.Integer(), nullable=False),
+        sa.Column('name', sa.String(length=100), nullable=True),
+        sa.PrimaryKeyConstraint('id'),
+        sa.UniqueConstraint('name')
+    )
     op.create_table(
         'user',
         sa.Column('id', sa.Integer(), nullable=False),
@@ -28,8 +35,8 @@ def upgrade():
         sa.Column('is_active', sa.Boolean(), nullable=True),
         sa.Column('is_admin', sa.Boolean(), nullable=True),
         sa.Column('is_superuser', sa.Boolean(), nullable=True),
-        sa.Column('date_joined', sa.DateTime(), server_default=sa.func.now(), nullable=True),
-        sa.Column('last_login', sa.DateTime(), nullable=True),
+        sa.Column('date_joined', sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=True),
+        sa.Column('last_login', sa.DateTime(timezone=True), nullable=True),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('username')
     )
@@ -40,13 +47,6 @@ def upgrade():
         sa.Column('codename', sa.String(length=50), nullable=True),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('codename')
-    )
-    op.create_table(
-        'group',
-        sa.Column('id', sa.Integer(), nullable=False),
-        sa.Column('name', sa.String(length=100), nullable=True),
-        sa.PrimaryKeyConstraint('id'),
-        sa.UniqueConstraint('name')
     )
     op.create_table(
         'group_permission',
@@ -69,6 +69,6 @@ def upgrade():
 def downgrade():
     op.drop_table('user_group')
     op.drop_table('group_permission')
-    op.drop_table('group')
     op.drop_table('permission')
     op.drop_table('user')
+    op.drop_table('group')

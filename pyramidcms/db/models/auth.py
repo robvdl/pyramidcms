@@ -76,8 +76,8 @@ class User(Model):
     is_active = Column(Boolean, default=True)
     is_admin = Column(Boolean, default=False)
     is_superuser = Column(Boolean, default=False)
-    date_joined = Column(DateTime, server_default=func.now())
-    last_login = Column(DateTime)
+    date_joined = Column(DateTime(timezone=True), server_default=func.now())
+    last_login = Column(DateTime(timezone=True))
     groups = relationship('Group', secondary=user_group_table)
 
     def __str__(self):
