@@ -96,25 +96,25 @@ class BaseModel(object):
     @property
     def columns(self):
         """
-        A property that returns all the actual db columns for this model.
+        Returns a list of database column names.
 
-        This does not include many to many, since these are not actual
-        fields in the database.
+        This returns only actual database columns, so many to many
+        fields will not be included in the list.
 
-        :returns: a list of columns for the model table.
+        :returns: a list of database column names for this model
         """
         return [col.name for col in class_mapper(self.__class__).mapped_table.c]
 
     @property
     def fields(self):
         """
-        This returns all fields for this model.
+        Returns a list of model field names.
 
-        That means for the foreign key for example: "user_id" and the
-        matching relation field "user", we return "user" but not
-        "user_id" which gets filtered out.
+        Since foreign keys are done across two fields in SQL Alchemy,
+        for example "user_id" for the actual field, and "user" for the
+        relation, we only include "user" in the list and not "user_id".
 
-        This also includes many to many relationship fields.
+        The list of fields also includes many-to-many relationships.
 
         :return: a list of field names for this model.
         """
