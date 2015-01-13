@@ -94,13 +94,42 @@ class BaseModel(object):
         return cls.__name__.lower()
 
     @property
-    def fields(self):
+    def columns(self):
         """
-        A property that returns all the fields for this model.
+        A property that returns all the actual db columns for this model.
 
-        :returns: a list of strings representing field names in the model.
+        This does not include many to many, since these are not actual
+        fields in the database.
+
+        :returns: a list of columns for the model table.
         """
         return [col.name for col in class_mapper(self.__class__).mapped_table.c]
+
+    @property
+    def fields(self):
+        """
+        This returns all fields for this model.
+
+        That means for the foreign key for example: "user_id" and the
+        matching relation field "user", we return "user" but not
+        "user_id" which gets filtered out.
+
+        This also includes many to many relationship fields.
+
+        :return: a list of field names for this model.
+        """
+        mapper = inspect(self.__class__)
+
+        fields_list = []
+        for col in mapper.attrs:
+            column = getattr(self.__class__, col.key)
+            foreign_keys = getattr(column, 'foreign_keys', None)
+
+            # don't include foreign key columns like user_id
+            if not foreign_keys:
+                fields_list.append(col.key)
+
+        return fields_list
 
     def delete(self):
         """
@@ -130,29 +159,29 @@ class BaseModel(object):
         :param full: when true recursively call serialize() on sub-models.
         :returns: model instance serialized into a dict
         """
-        # This gets the normal fields but not many to many
         fields_dict = {}
         for field_name in self.fields:
             field = getattr(self, field_name)
-            if type(field) == datetime:
-                fields_dict[field_name] = field.isoformat()
+
+            # foreign keys
+            if isinstance(field, Model):
+                if full:
+                    fields_dict[field_name] = field.serialize()
+                else:
+                    fields_dict[field_name] = field.id
+
+            # many to many
+            elif type(field) == InstrumentedList:
+                if full:
+                    fields_dict[field_name] = [model.serialize(True) for model in field]
+                else:
+                    fields_dict[field_name] = [model.id for model in field]
+
+            # regular fields
+            elif type(field) == datetime:
+                fields_dict[field_name] = field.isoformat()  # encode dates
             else:
                 fields_dict[field_name] = field
-
-        # This contains all the fields including m2m fields.
-        mapper = inspect(self.__class__)
-        all_fields = [column.key for column in mapper.attrs]
-
-        # Try to find m2m fields using the set difference,
-        # ensure every field is actually an m2m field.
-        possible_m2m = set(all_fields) - set(self.fields)
-        for field_name in possible_m2m:
-            m2m_field = getattr(self, field_name)
-            if type(m2m_field) == InstrumentedList:
-                if full:
-                    fields_dict[field_name] = [model.serialize() for model in m2m_field]
-                else:
-                    fields_dict[field_name] = [model.id for model in m2m_field]
 
         return fields_dict
 
