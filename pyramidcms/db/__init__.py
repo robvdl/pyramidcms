@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from sqlalchemy import Column, Integer, inspect
 from sqlalchemy.orm import scoped_session, sessionmaker, class_mapper
 from sqlalchemy.orm.collections import InstrumentedList
@@ -114,19 +116,28 @@ class BaseModel(object):
         """
         DBSession.add(self)
 
-    def as_dict(self, full=True):
+    def serialize(self, full=False):
         """
         Returns this model instance as a dictionary.
 
         Many to many fields are returned as a list of id's unless
-        full=True, in which case it recursively calls as_dict() on
+        full=True, in which case it recursively calls serialize() on
         the related model instances which returns a list of dicts.
 
-        :param full: when true recursively call as_dict() on sub-models.
-        :returns: model instance converted to a dict
+        Date fields are converted into a string using ISO format,
+        so that a serialized model can easily be converted to JSON.
+
+        :param full: when true recursively call serialize() on sub-models.
+        :returns: model instance serialized into a dict
         """
         # This gets the normal fields but not many to many
-        fields_dict = {col: getattr(self, col) for col in self.fields}
+        fields_dict = {}
+        for field_name in self.fields:
+            field = getattr(self, field_name)
+            if type(field) == datetime:
+                fields_dict[field_name] = field.isoformat()
+            else:
+                fields_dict[field_name] = field
 
         # This contains all the fields including m2m fields.
         mapper = inspect(self.__class__)
@@ -136,12 +147,12 @@ class BaseModel(object):
         # ensure every field is actually an m2m field.
         possible_m2m = set(all_fields) - set(self.fields)
         for field_name in possible_m2m:
-            field = getattr(self, field_name)
-            if type(field) == InstrumentedList:
+            m2m_field = getattr(self, field_name)
+            if type(m2m_field) == InstrumentedList:
                 if full:
-                    fields_dict[field_name] = [model.as_dict() for model in field]
+                    fields_dict[field_name] = [model.serialize() for model in m2m_field]
                 else:
-                    fields_dict[field_name] = [model.id for model in field]
+                    fields_dict[field_name] = [model.id for model in m2m_field]
 
         return fields_dict
 

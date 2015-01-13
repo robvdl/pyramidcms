@@ -20,6 +20,6 @@ class Command(BaseCommand):
     def handle(self, args):
         # This nested list comprehension builds a data structure of all the
         # models, and all records, which can then be converted to JSON.
-        json_data = [{'model': m.__name__, 'items': [obj.as_dict(full=False) for obj in m.objects.all()]} for m in models.__all__]
+        json_data = [{'model': m.__name__, 'items': [obj.serialize() for obj in m.objects.all()]} for m in models.__all__]
         json.dump(json_data, sys.stdout, indent=4)
         sys.stdout.write('\n')
