@@ -100,7 +100,7 @@ class BaseModel(object):
         def _join(match):
             word = match.group()
             if len(word) > 1:
-                return ('_{}_{}'.format(word[:-1], word[-1])).lower()
+                return '_{}_{}'.format(word[:-1], word[-1]).lower()
             return '_' + word.lower()
 
         return RE_CAMELCASE.sub(_join, cls.__name__).lstrip('_')
