@@ -72,8 +72,8 @@ def run_migrations_online():
 
 
 log.info('Using models:')
-for cls in models.__all__:
-    log.info(' - {}'.format(cls.__name__))
+for model in models.__all__:
+    log.info(' - ' + model)
 
 if context.is_offline_mode():
     run_migrations_offline()

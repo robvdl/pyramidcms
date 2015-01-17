@@ -18,8 +18,10 @@ class Command(BaseCommand):
                             help='Optional list of models (will dump everything if omitted) ')
 
     def handle(self, args):
-        # This nested list comprehension builds a data structure of all the
-        # models, and all records, which can then be converted to JSON.
-        json_data = [{'model': m.__name__, 'objects': [obj.serialize() for obj in m.objects.all()]} for m in models.__all__]
+        json_data = []
+        for cls in models.__all__:
+            model = getattr(models, cls)
+            json_data.append({'model': cls, 'objects': [obj.serialize() for obj in model.objects.all()]})
+
         json.dump(json_data, sys.stdout, indent=4)
         sys.stdout.write('\n')
