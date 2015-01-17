@@ -1,3 +1,4 @@
+import re
 from datetime import datetime
 
 from sqlalchemy import Column, Integer, inspect
@@ -5,6 +6,8 @@ from sqlalchemy.orm import scoped_session, sessionmaker, class_mapper
 from sqlalchemy.orm.collections import InstrumentedList
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
 from zope.sqlalchemy import ZopeTransactionExtension
+
+RE_CAMELCASE = re.compile(r'([A-Z]+)(?=[a-z0-9])')
 
 
 class ModelManager(object):
@@ -90,8 +93,17 @@ class BaseModel(object):
         """
         This gives a default table name which is just the model class
         name as lower case, can still be overridden however.
+
+        The default is to lowercase the model name and use underscores
+        between words rather than camelcase.
         """
-        return cls.__name__.lower()
+        def _join(match):
+            word = match.group()
+            if len(word) > 1:
+                return ('_{}_{}'.format(word[:-1], word[-1])).lower()
+            return '_' + word.lower()
+
+        return RE_CAMELCASE.sub(_join, cls.__name__).lstrip('_')
 
     @property
     def columns(self):
