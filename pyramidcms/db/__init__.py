@@ -106,7 +106,7 @@ class BaseModel(object):
         return RE_CAMELCASE.sub(_join, cls.__name__).lstrip('_')
 
     def __repr__(self):
-        return '<{}: {}>'.format(self.__class__.__name__, self)
+        return '<{}: {}>'.format(self.__class__.__name__, str(self))
 
     @property
     def columns(self):
