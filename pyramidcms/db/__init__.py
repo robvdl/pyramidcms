@@ -178,14 +178,14 @@ class BaseModel(object):
             # foreign keys
             if isinstance(field, Model):
                 if full:
-                    fields_dict[field_name] = field.serialize()
+                    fields_dict[field_name] = field.serialize(full=True)
                 else:
                     fields_dict[field_name] = field.id
 
             # many to many
             elif type(field) == InstrumentedList:
                 if full:
-                    fields_dict[field_name] = [model.serialize(True) for model in field]
+                    fields_dict[field_name] = [model.serialize(full=True) for model in field]
                 else:
                     fields_dict[field_name] = [model.id for model in field]
 
