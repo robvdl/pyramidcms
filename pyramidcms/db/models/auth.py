@@ -44,7 +44,7 @@ class Permission(Model):
     objects = PermissionManager()
 
     def __str__(self):
-        return self.description
+        return self.name
 
 
 class Group(Model):
