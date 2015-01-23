@@ -1,13 +1,13 @@
 """
 Initial migration
 
-Revision ID: 4f92a2be560
+Revision ID: 32b7677509c
 Revises: 
-Create Date: 2015-01-13 09:01:57.174594
+Create Date: 2015-01-24 10:15:06.483512
 """
 
 # revision identifiers, used by Alembic.
-revision = '4f92a2be560'
+revision = '32b7677509c'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -32,9 +32,8 @@ def upgrade():
         sa.Column('last_name', sa.String(length=50), nullable=True),
         sa.Column('email', sa.String(length=100), nullable=True),
         sa.Column('password', sa.String(length=100), nullable=True),
-        sa.Column('is_active', sa.Boolean(), nullable=True),
-        sa.Column('is_admin', sa.Boolean(), nullable=True),
-        sa.Column('is_superuser', sa.Boolean(), nullable=True),
+        sa.Column('active', sa.Boolean(), nullable=True),
+        sa.Column('superuser', sa.Boolean(), nullable=True),
         sa.Column('date_joined', sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=True),
         sa.Column('last_login', sa.DateTime(timezone=True), nullable=True),
         sa.PrimaryKeyConstraint('id'),
@@ -43,10 +42,10 @@ def upgrade():
     op.create_table(
         'permission',
         sa.Column('id', sa.Integer(), nullable=False),
-        sa.Column('name', sa.String(length=255), nullable=True),
-        sa.Column('codename', sa.String(length=50), nullable=True),
+        sa.Column('name', sa.String(length=50), nullable=True),
+        sa.Column('description', sa.String(length=255), nullable=True),
         sa.PrimaryKeyConstraint('id'),
-        sa.UniqueConstraint('codename')
+        sa.UniqueConstraint('name')
     )
     op.create_table(
         'group_permission',

@@ -36,10 +36,11 @@ class Permission(Model):
     """
     Based on the Django auth.Permission model, but with some differences:
 
-    * The "content_type" field is not used yet so is removed.
+    * field names change: "name" and "description" are used for consistency
+    * The "content_type" field has no real use to us so was removed.
     """
-    name = Column(String(255))
-    codename = Column(String(50), unique=True)
+    name = Column(String(50), unique=True)
+    description = Column(String(255))
 
     objects = PermissionManager()
 
@@ -62,20 +63,21 @@ class User(Model):
     """
     Based on the Django auth.User model, but with some differences:
 
-    * is_staff becomes is_admin which gives basic admin access
-    * permissions are only stored on the group to reduce the complexity
+    * is_staff has been dropped, the Group/Permission system is used instead.
+    * is_superuser has been renamed to just "superuser"
+    * is_active has been renamed just "active"
+    * permissions are only stored on the Group to reduce complexity
 
-    Note that when "is_superuser" is set, this implies you have "is_admin"
-    as well to the permission system, even if is_admin is false on the user.
+    In Django you can also set permissions on the User directly, but
+    to keep things simple we only store these on the Group.
     """
     username = Column(String(50), nullable=False, unique=True)
     first_name = Column(String(50))
     last_name = Column(String(50))
     email = Column(String(100))
     password = Column(String(100))
-    is_active = Column(Boolean, default=True)
-    is_admin = Column(Boolean, default=False)
-    is_superuser = Column(Boolean, default=False)
+    active = Column(Boolean, default=True)
+    superuser = Column(Boolean, default=False)
     date_joined = Column(DateTime(timezone=True), server_default=func.now())
     last_login = Column(DateTime(timezone=True))
     groups = relationship('Group', secondary=user_group_table)
