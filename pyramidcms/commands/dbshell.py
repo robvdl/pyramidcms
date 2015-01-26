@@ -1,8 +1,11 @@
 import re
+import os
+import signal
 from subprocess import call
 
 from pyramidcms.cli import BaseCommand
 from pyramidcms.exceptions import CommandError
+
 
 # Regex to decompose a SQL Alchemy connection URL into it's base components
 RE_DB_URL = re.compile(r'''
@@ -49,11 +52,16 @@ class Command(BaseCommand):
 
         if connection['port']:
             if connection['dbms'].startswith('mysql'):
-                command += ' -P ' + connection['port']
+                command += ' -P ' + str(connection['port'])
+            elif connection['dbms'].startswith('postgresql'):
+                command += ' -p ' + str(connection['port'])
             else:
-                command += ' -p ' + connection['port']
+                print('Dbms not supported.')
 
-        call(command, shell=True)
+        try:
+            call(command, shell=True)
+        except KeyboardInterrupt:
+            os.kill(os.getpid(), signal.SIGTERM)
 
     def handle(self, args):
         connection = self.parse_url(self.settings['sqlalchemy.url'])
