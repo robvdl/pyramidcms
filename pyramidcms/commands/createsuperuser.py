@@ -38,7 +38,7 @@ class Command(BaseCommand):
         valid_email = False
         email = ''
         while not valid_email:
-            email = input('Email:')
+            email = input('Email: ')
             match = RE_VALID_EMAIL.search(email)
             if match or email == '':
                 valid_email = True
