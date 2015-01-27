@@ -1,8 +1,12 @@
 import re
+import os
+import shlex
+import signal
 from subprocess import call
 
 from pyramidcms.cli import BaseCommand
 from pyramidcms.exceptions import CommandError
+
 
 # Regex to decompose a SQL Alchemy connection URL into it's base components
 RE_DB_URL = re.compile(r'''
@@ -49,11 +53,17 @@ class Command(BaseCommand):
 
         if connection['port']:
             if connection['dbms'].startswith('mysql'):
-                command += ' -P ' + connection['port']
+                command += ' -P ' + str(connection['port'])
+            elif connection['dbms'].startswith('postgresql'):
+                command += ' -p ' + str(connection['port'])
             else:
-                command += ' -p ' + connection['port']
+                raise CommandError("SQLite doesn't support a port")
 
-        call(command, shell=True)
+        try:
+            call(shlex.split(command))
+        except KeyboardInterrupt:
+            # ctrl+c was pressed on dbshell password prompt so cleanup
+            os.kill(os.getpid(), signal.SIGTERM)
 
     def handle(self, args):
         connection = self.parse_url(self.settings['sqlalchemy.url'])
