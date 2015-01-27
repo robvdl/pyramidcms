@@ -1,5 +1,6 @@
 import re
 import os
+import shlex
 import signal
 from subprocess import call
 
@@ -56,11 +57,12 @@ class Command(BaseCommand):
             elif connection['dbms'].startswith('postgresql'):
                 command += ' -p ' + str(connection['port'])
             else:
-                print('Dbms not supported.')
+                raise CommandError("SQLite doesn't support a port")
 
         try:
-            call(command, shell=True)
+            call(shlex.split(command))
         except KeyboardInterrupt:
+            # ctrl+c was pressed on dbshell password prompt so cleanup
             os.kill(os.getpid(), signal.SIGTERM)
 
     def handle(self, args):
