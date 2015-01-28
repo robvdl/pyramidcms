@@ -64,7 +64,7 @@ class Command(BaseCommand):
         user.set_password(superuser_details['password'])
         with transaction.manager:
             user.save()
-        print('\nSuperuser created successfully')
+        print('Superuser created successfully')
 
     def handle(self, args):
         superuser_details = self.get_superuser_details()
