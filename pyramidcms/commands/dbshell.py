@@ -34,7 +34,7 @@ class Command(BaseCommand):
             if connection['host'] is None:
                 connection['host'] = 'localhost'
             if connection['port'] is not None:
-                connection['port'] = int(connection['port'])
+                connection['port'] = connection['port']
             return connection
         else:
             raise CommandError('Failed to parse sqlalchemy.url connection string')
@@ -57,9 +57,9 @@ class Command(BaseCommand):
 
         if connection['port']:
             if is_mysql:
-                command += ' -P ' + str(connection['port'])
+                command += ' -P ' + connection['port']
             elif is_postgresql:
-                command += ' -p ' + str(connection['port'])
+                command += ' -p ' + connection['port']
             else:
                 raise CommandError("SQLite doesn't support a port")
 
