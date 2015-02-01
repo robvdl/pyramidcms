@@ -33,8 +33,6 @@ class Command(BaseCommand):
             connection = match.groupdict()
             if connection['host'] is None:
                 connection['host'] = 'localhost'
-            if connection['port'] is not None:
-                connection['port'] = connection['port']
             return connection
         else:
             raise CommandError('Failed to parse sqlalchemy.url connection string')
