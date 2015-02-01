@@ -40,21 +40,25 @@ class Command(BaseCommand):
             raise CommandError('Failed to parse sqlalchemy.url connection string')
 
     def load_dbms_shell(self, connection):
-        if connection['dbms'].startswith('mysql'):
+        is_mysql = connection['dbms'].startswith('mysql')
+        is_postgresql = connection['dbms'].startswith('postgresql')
+        is_sqlite = connection['dbms'].startswith('sqlite')
+
+        if is_mysql:
             # lowercase -p means prompt for password in mysql
             # if you leave it out, it will try to login without password
             command = 'mysql -u {username} -h {host} -D {database} -p'.format(**connection)
-        elif connection['dbms'].startswith('postgresql'):
+        elif is_postgresql:
             command = 'psql -U {username} -h {host} -d {database}'.format(**connection)
-        elif connection['dbms'].startswith('sqlite'):
+        elif is_sqlite:
             command = 'sqlite3 ' + connection['database']
         else:
             raise CommandError('Unsupported DBMS ' + connection['dbms'])
 
         if connection['port']:
-            if connection['dbms'].startswith('mysql'):
+            if is_mysql:
                 command += ' -P ' + str(connection['port'])
-            elif connection['dbms'].startswith('postgresql'):
+            elif is_postgresql:
                 command += ' -p ' + str(connection['port'])
             else:
                 raise CommandError("SQLite doesn't support a port")
