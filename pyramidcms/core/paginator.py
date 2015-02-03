@@ -19,7 +19,7 @@ class Paginator(object):
 class Page(object):
 
     def __init__(self, paginator, number):
-        # we can only accept integer page numbers
+        # we only accept integer page numbers
         if type(number) is not int:
             raise PageNotAnInteger('{0} is not an integer'.format(number))
 
@@ -36,10 +36,16 @@ class Page(object):
         return self.number < self.paginator.num_pages
 
     def has_previous(self):
-        return self.offset >- self.paginator.per_page
+        return self.offset >= self.paginator.per_page
 
     def has_other_pages(self):
         return self.paginator.count > self.paginator.per_page
+
+    def next_page_offset(self):
+        if self.number < self.paginator.num_pages:
+            return self.offset + self.paginator.per_page
+        else:
+            raise InvalidPage('Next page does not exist')
 
     def previous_page_offset(self):
         if self.number > 1:
