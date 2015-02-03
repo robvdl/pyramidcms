@@ -172,7 +172,7 @@ class BaseModel(object):
         so that a serialized model can easily be converted to JSON.
 
         :param full: when true recursively call serialize() on sub-models.
-        :returns: model instance serialized into a dict
+        :returns: model instance serialized into a dict.
         """
         fields_dict = {}
         for field_name in self.fields:
