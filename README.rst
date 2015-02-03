@@ -1,13 +1,17 @@
 PyramidCMS
 ==========
 
-A content management system for Pyramid and Python 3.
+A content management system for Pyramid and Python 3.4+
 
-Note that PyramidCMS development has only just started, so there isn't
-really much to see here at this point.
+Note that PyramidCMS development has only just started and we are mostly
+still working on the foundation, so there isn't really much to see here yet.
 
-We do welcome new contributors, but at this point we are still in the
-planning stages of the project.
+We do welcome new contributors, but we are still in the early stages of the
+project, so it will take a while before it will even be remotely usable.
+
+We want to use only the latest version of Python (3.4 or higher), as this
+is still a young project so we can aim high and use the latest language
+features and core libraries.
 
 Setting up a development environment::
 
