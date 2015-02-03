@@ -5,7 +5,7 @@ import signal
 from subprocess import call
 
 from pyramidcms.cli import BaseCommand
-from pyramidcms.exceptions import CommandError
+from pyramidcms.core.exceptions import CommandError
 
 
 # Regex to decompose a SQL Alchemy connection URL into it's base components

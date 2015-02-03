@@ -13,7 +13,7 @@ Contents:
 
    cli
    commands
-   exceptions
+   core
    layouts
    db
    views

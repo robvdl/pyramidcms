@@ -4,7 +4,7 @@ import codecs
 from jinja2 import Template
 
 from pyramidcms.cli import BaseCommand
-from pyramidcms.exceptions import CommandError
+from pyramidcms.core.exceptions import CommandError
 
 # location of config templates
 CONF_TEMPLATE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../conf'))

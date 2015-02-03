@@ -7,7 +7,7 @@ from pyramid.paster import get_appsettings, setup_logging
 from sqlalchemy import engine_from_config
 
 from pyramidcms.db import DBSession
-from pyramidcms.exceptions import CommandError
+from pyramidcms.core.exceptions import CommandError
 
 
 class BaseCommand(object):

@@ -12,7 +12,7 @@ class Paginator(object):
         self.num_pages = int(ceil(self.count / self.per_page))
         self.page_range = range(1, self.num_pages + 1)
 
-    def page(selfself, page_number):
+    def page(self, page_number):
         return Page(self, page_number)
 
 
