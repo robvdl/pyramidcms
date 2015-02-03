@@ -165,16 +165,19 @@ def main(argv=None):
     :param argv: argv array, if None defaults to sys.argv.
     """
 
-    def command_help(help):
+    def command_help(help_text):
         """
         Parse existing file names in the commands folder and places them in a list,
         then prints a list of commands after printing the parser help text.
 
-        :param help: help text
+        :param help_text: help text
         """
-        command_list = [name.replace(".py", "") for name in os.listdir('pyramidcms/commands')
-         if name.endswith('.py') and name != '__init__.py']
-        print(help + '\navailable commands:\n  ' + '\n  '.join(command_list) + '\n')
+        # FIXME: this list comprehension doesn't read that nice, we should do something a bit clearer
+        command_list = [
+            name.replace(".py", "") for name in os.listdir('pyramidcms/commands')
+            if name.endswith('.py') and name != '__init__.py'
+        ]
+        print(help_text + '\navailable commands:\n  ' + '\n  '.join(command_list) + '\n')
 
     if argv is None:
         argv = sys.argv
@@ -208,8 +211,7 @@ def main(argv=None):
             # want to know it's path so store __file__.
             settings = {'__file__': default_ini}
 
-        cmd = load_command(app,
-        command, settings)
+        cmd = load_command(app, command, settings)
         if args.command[0] == 'help':
             cmd.help()
         else:
