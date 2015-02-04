@@ -1,3 +1,4 @@
 include *.ini *.rst *.txt *.cfg
 recursive-include pyramidcms/static *
 recursive-include pyramidcms/templates *
+recursive-include requirements *

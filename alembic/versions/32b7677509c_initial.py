@@ -2,7 +2,7 @@
 Initial migration
 
 Revision ID: 32b7677509c
-Revises: 
+Revises:
 Create Date: 2015-01-24 10:15:06.483512
 """
 

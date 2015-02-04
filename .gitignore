@@ -16,3 +16,6 @@ pyramidcms.ini
 
 # Sphinx build directory
 doc/build
+
+# Testing
+.tox

@@ -218,4 +218,3 @@ def main(argv=None):
             cmd.run(*args.command[1:])
     else:
         command_help(parser.format_help())
-
