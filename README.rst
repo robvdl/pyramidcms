@@ -1,6 +1,9 @@
 PyramidCMS
 ==========
 
+.. image:: https://travis-ci.org/robvdl/pyramidcms.png?branch=master
+        :target: https://travis-ci.org/robvdl/pyramidcms
+
 A content management system for Pyramid and Python 3.4+
 
 Note that PyramidCMS development has only just started and we are mostly
