@@ -19,3 +19,4 @@ doc/build
 
 # Testing
 .tox
+.coverage
