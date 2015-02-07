@@ -26,4 +26,4 @@ class CliFrameworkTests(TestCase):
         # help without a command should raise CommandError
         args = self.parser.parse_args(['help'])
         with self.assertRaises(CommandError):
-             cli.get_command('pcms', args)
+            cli.get_command('pcms', args)
