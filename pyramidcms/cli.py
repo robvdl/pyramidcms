@@ -139,7 +139,7 @@ def load_command(app, command, settings):
     return module.Command(app, command, settings)
 
 
-def print_command_help(parser):
+def print_help_with_commands(parser):
     """
     Prints a list of commands after printing the optparse default help text.
 
@@ -222,4 +222,4 @@ def main(argv=None):
         else:
             cmd.run(*args.command[1:])
     else:
-        print_command_help(parser)
+        print_help_with_commands(parser)
