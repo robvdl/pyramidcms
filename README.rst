@@ -4,7 +4,7 @@ PyramidCMS
 .. image:: https://travis-ci.org/robvdl/pyramidcms.png?branch=master
         :target: https://travis-ci.org/robvdl/pyramidcms
 
-A content management system for Pyramid and Python 3.4+
+A content management system for Pyramid and Python 3.3+
 
 Note that PyramidCMS development has only just started and we are mostly
 still working on the foundation, so there isn't really much to see here yet.
@@ -12,7 +12,7 @@ still working on the foundation, so there isn't really much to see here yet.
 We do welcome new contributors, but we are still in the early stages of the
 project, so it will take a while before it will even be remotely usable.
 
-We want to use only the latest version of Python (3.4 or higher), as this
+We want to use only the latest version of Python (3.3 or higher), as this
 is still a young project so we can aim high and use the latest language
 features and core libraries.
 
