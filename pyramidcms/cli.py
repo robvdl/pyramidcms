@@ -98,7 +98,7 @@ class BaseCommand(object):
         pass
 
 
-def get_command(app, args):
+def get_command_from_args(app, args):
     """
     Returns the command given an argparse instance.
 
@@ -146,11 +146,19 @@ def get_command_list():
     the __init__.py file.
     """
     # FIXME: this list comprehension doesn't read that nice, make it clearer
-    commands = [
+    return [
         name.replace(".py", "") for name in os.listdir('pyramidcms/commands')
         if name.endswith('.py') and name != '__init__.py'
     ]
-    return commands
+
+
+def print_command_list():
+    """
+    Prints a list of available commands, this should be done right
+    after printing the default argparse help text.
+    """
+    command_list = '\n  '.join(get_command_list())
+    print('\navailable commands:\n  {}\n'.format(command_list))
 
 
 def main(argv=None):
@@ -198,7 +206,7 @@ def main(argv=None):
     args = parser.parse_args(argv[1:])
     if args.command:
         ini_file = args.ini[0]
-        command = get_command(app, args)
+        command = get_command_from_args(app, args)
 
         # load .ini file, if this file doesn't exist the
         # settings objects will end up an empty dict
@@ -217,7 +225,4 @@ def main(argv=None):
             cmd.run(*args.command[1:])
     else:
         parser.print_help()
-
-        # prints a list of commands below default help text
-        command_help = '\n  '.join(get_command_list())
-        print('\navailable commands:\n  {}\n'.format(command_help))
+        print_command_list()
