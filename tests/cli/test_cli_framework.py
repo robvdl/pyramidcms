@@ -1,6 +1,6 @@
 import argparse
 from unittest import TestCase
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 from pyramidcms import cli
 from pyramidcms.core.exceptions import CommandError
