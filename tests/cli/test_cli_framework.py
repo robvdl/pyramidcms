@@ -21,7 +21,7 @@ class CliFrameworkTests(TestCase):
             'test_setting': 'setting_value',
         }
 
-    def test_get_command(self):
+    def test_get_command_form_args(self):
         """
         Unit test for :func:`pyramidcms.cli.get_command_from_args`
 
