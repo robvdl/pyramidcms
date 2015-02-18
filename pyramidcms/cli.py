@@ -166,7 +166,7 @@ def print_command_list():
     print('\navailable commands:\n  {}\n'.format(command_list))
 
 
-def main(argv=None):
+def main(argv=sys.argv):
     """
     The entry point to all management commands.
 
@@ -191,9 +191,6 @@ def main(argv=None):
 
     :param argv: argv array, if None defaults to sys.argv.
     """
-    if argv is None:
-        argv = sys.argv
-
     # the default .ini file if none is specified
     default_ini = 'pyramidcms.ini'
 
