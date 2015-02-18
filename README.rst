@@ -42,3 +42,24 @@ When everything is installed, this will start the web application::
 
     gunicorn --paste pyramidcms.ini
 
+Running the tests
+-----------------
+
+Make sure you have installed the dev requirements::
+
+    pip install -r requirements/dev.txt
+
+Now just run nose::
+
+    nosetests
+
+Note that if nosetests doesn't work and it appears to be using Python 2
+instead of the virtualenv, this is something I ran into on Ubuntu 14.014
+as well, just deactivate the virtualenv and type "workon pyramidcms" again.
+
+You can also use Tox to run the tests against multiple Python versions::
+
+    tox
+
+To do so, you must have both Python 3.3 and 3.4 installed, on Ubuntu this
+can be done using the "Deadsnakes PPA".
