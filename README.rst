@@ -54,7 +54,7 @@ Now just run nose::
     nosetests
 
 Note that if nosetests doesn't work and it appears to be using Python 2
-instead of the virtualenv, this is something I ran into on Ubuntu 14.014
+instead of the virtualenv, this is something I ran into on Ubuntu 14.04
 as well, just deactivate the virtualenv and type "workon pyramidcms" again.
 
 You can also use Tox to run the tests against multiple Python versions::
