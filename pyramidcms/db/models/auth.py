@@ -90,6 +90,12 @@ class User(Model):
         else:
             return self.username
 
+    def is_active(self): 
+        """
+        Returns user status if active or inactive.
+        """
+        return self.active
+
     def check_password(self, password):
         """
         Validate password against hashed password in database.
