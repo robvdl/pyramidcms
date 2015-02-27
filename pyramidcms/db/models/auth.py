@@ -90,9 +90,9 @@ class User(Model):
         else:
             return self.username
 
-    def is_active(self): 
+    def is_active(self):
         """
-        Returns user status if active or inactive.
+        Returns user activity status.
         """
         return self.active
 
