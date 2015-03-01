@@ -11,7 +11,6 @@ class AuthViews(BaseLayout):
     """
     Authentication views: login, logout.
     """
-
     @view_config(route_name='login', renderer='login.jinja2')
     @forbidden_view_config(renderer='login.jinja2')
     def login(self):
@@ -28,7 +27,7 @@ class AuthViews(BaseLayout):
                     self.session.new_csrf_token()
                     self.session.flash('You are logged in', queue='success')
                     return HTTPFound(location=return_url, headers=headers)
-                self.session.flash('Inactive user account', queue='error')
+                self.session.flash('User account is disabled', queue='error')
             self.session.flash('Invalid username or password', queue='error')
 
         return {
