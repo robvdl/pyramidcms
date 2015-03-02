@@ -1,4 +1,4 @@
-pyramid==1.5.2
+pyramid==1.5.4
 pyramid_jinja2==2.3.3
 jinja2==2.7.3
 pyramid_tm==0.11
@@ -9,4 +9,4 @@ gunicorn==19.2.1
 passlib==1.6.2
 alembic==0.7.4
 WTForms==2.0.2
-cornice==0.17
+cornice==0.18.1

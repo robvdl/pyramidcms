@@ -37,8 +37,6 @@ class BaseModelTests(TestCase):
         """
         The repr() method on a model generates a string based on the
         model class name and calling str() on the model.
-
-        :return:
         """
         db.BaseModel.__str__ = Mock(return_value='str_return_value')
 
