@@ -109,7 +109,7 @@ class BaseModelTests(TestCase):
             'null_field': None
         })
 
-        self.assertDictEqual(model.serialize(True), {
+        self.assertDictEqual(model.serialize(full=True), {
             'bool_field': True,
             'int_field': 10,
             'date_field': model.date_field.isoformat(),
