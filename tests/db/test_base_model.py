@@ -1,5 +1,8 @@
+from datetime import datetime
 from unittest import TestCase
 from unittest.mock import Mock, patch
+
+from sqlalchemy.orm.collections import InstrumentedList
 
 from pyramidcms import db
 
@@ -73,3 +76,45 @@ class BaseModelTests(TestCase):
         model = db.BaseModel()
         model.save()
         mock_session.add.assert_called_once_with(model)
+
+    @patch('pyramidcms.db.ModelManager', Mock())
+    def test_serialize(self):
+        """
+        Unit test for the serialize() method on models, done using mocks.
+
+        Tests done using full=False and full=True parameter, also tests
+        different field types, e.g. int, datetime, foreign key and m2m.
+        """
+        class CustomModel(db.BaseModel):
+            fields = ['fk_field', 'm2m_field', 'int_field', 'str_field',
+                      'bool_field', 'null_field', 'date_field']
+            fk_field = Mock(spec=db.Model, id=1, serialize=Mock(return_value={'id': 1}))
+            m2m_field = InstrumentedList([Mock(id=2, serialize=Mock(return_value={'id': 2}))])
+            int_field = 10
+            str_field = 'string field'
+            bool_field = True
+            null_field = None
+            date_field = datetime.now()
+            not_a_field = 'not a field'
+
+        model = CustomModel()
+
+        self.assertDictEqual(model.serialize(), {
+            'bool_field': True,
+            'int_field': 10,
+            'date_field': model.date_field.isoformat(),
+            'fk_field': 1,
+            'm2m_field': [2],
+            'str_field': 'string field',
+            'null_field': None
+        })
+
+        self.assertDictEqual(model.serialize(True), {
+            'bool_field': True,
+            'int_field': 10,
+            'date_field': model.date_field.isoformat(),
+            'fk_field': {'id': 1},
+            'm2m_field': [{'id': 2}],
+            'str_field': 'string field',
+            'null_field': None
+        })
