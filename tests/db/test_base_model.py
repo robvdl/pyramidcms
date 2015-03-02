@@ -31,11 +31,11 @@ class BaseModelTests(TestCase):
         model = db.BaseModel()
         self.assertEqual(model.__tablename__, 'base_model')
 
-        class ModelWithLongName(db.BaseModel):
+        class DBModelWithLongName(db.BaseModel):
             pass
 
-        model = ModelWithLongName()
-        self.assertEqual(model.__tablename__, 'model_with_long_name')
+        model = DBModelWithLongName()
+        self.assertEqual(model.__tablename__, 'db_model_with_long_name')
 
     @patch('pyramidcms.db.ModelManager', Mock())
     def test_repr(self):
