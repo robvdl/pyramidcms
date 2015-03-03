@@ -2,9 +2,26 @@ from datetime import datetime
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
+from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.orm import relationship
 from sqlalchemy.orm.collections import InstrumentedList
 
 from pyramidcms import db
+
+
+# These mock models are used for testing
+
+class UserModel(db.Model):
+    username = Column(String)
+    fullname = Column(String)
+    password = Column(String)
+
+
+class ApiModel(db.Model):
+    token = Column(String(50), unique=True)
+    user_id = Column(Integer, ForeignKey('user_model.id'))
+    description = Column(String(30))
+    user = relationship('UserModel')
 
 
 class BaseModelTests(TestCase):
@@ -28,11 +45,11 @@ class BaseModelTests(TestCase):
         The tablename should be generated from the name of the model class,
         but using lowercase and underscores instead of camel case.
         """
-        model = db.BaseModel()
-        self.assertEqual(model.__tablename__, 'base_model')
-
         class DBModelWithLongName(db.BaseModel):
             pass
+
+        model = db.BaseModel()
+        self.assertEqual(model.__tablename__, 'base_model')
 
         model = DBModelWithLongName()
         self.assertEqual(model.__tablename__, 'db_model_with_long_name')
@@ -43,12 +60,12 @@ class BaseModelTests(TestCase):
         The repr() method on a model generates a string based on the
         model class name and calling str() on the model.
         """
-        class CustomModel(db.BaseModel):
+        class MockModel(db.BaseModel):
             def __str__(self):
                 return 'str_method'
 
-        model = CustomModel()
-        self.assertEqual(repr(model), '<CustomModel: str_method>')
+        model = MockModel()
+        self.assertEqual(repr(model), '<MockModel: str_method>')
 
     @patch('pyramidcms.db.ModelManager', Mock())
     def test_delete(self):
@@ -85,7 +102,7 @@ class BaseModelTests(TestCase):
         Tests done using full=False and full=True parameter, also tests
         different field types, e.g. int, datetime, foreign key and m2m.
         """
-        class CustomModel(db.BaseModel):
+        class MockModel(db.BaseModel):
             fields = ['fk_field', 'm2m_field', 'int_field', 'str_field',
                       'bool_field', 'null_field', 'date_field']
             fk_field = Mock(spec=db.Model, id=1, serialize=Mock(return_value={'id': 1}))
@@ -97,7 +114,7 @@ class BaseModelTests(TestCase):
             date_field = datetime.now()
             not_a_field = 'not a field'
 
-        model = CustomModel()
+        model = MockModel()
 
         self.assertDictEqual(model.serialize(), {
             'bool_field': True,
@@ -118,3 +135,23 @@ class BaseModelTests(TestCase):
             'str_field': 'string field',
             'null_field': None
         })
+
+    @patch('pyramidcms.db.ModelManager', Mock())
+    def test_fields(self):
+        """
+        Test the model.fields property, requires an actual model to test.
+        """
+        model = ApiModel()
+
+        # fields should include user but not user_id
+        self.assertListEqual(model.fields, ['user', 'id', 'token', 'description'])
+
+    @patch('pyramidcms.db.ModelManager', Mock())
+    def test_columns(self):
+        """
+        Test the model.columns property, requires an actual model to test.
+        """
+        model = ApiModel()
+
+        # columns should include user_id but not user
+        self.assertListEqual(model.columns, ['id', 'token', 'user_id', 'description'])
