@@ -9,4 +9,4 @@ gunicorn==19.2.1
 passlib==1.6.2
 alembic==0.7.4
 WTForms==2.0.2
-cornice==0.18.1
+cornice==0.19.0
