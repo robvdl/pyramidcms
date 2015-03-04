@@ -26,13 +26,13 @@ class ApiBase(object):
 
         if page.has_next():
             page_ofs = page.next_page_offset()
-            next_page_url = '{0}?offset={1}'.format(self.api_url, page_ofs)
+            next_page_url = '{}?offset={}'.format(self.api_url, page_ofs)
         else:
             next_page_url = None
 
         if page.has_previous():
             page_ofs = page.prev_page_offset()
-            prev_page_url = '{0}?offset={1}'.format(self.api_url, page_ofs)
+            prev_page_url = '{}?offset={}'.format(self.api_url, page_ofs)
         else:
             prev_page_url = None
 

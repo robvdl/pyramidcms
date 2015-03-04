@@ -21,11 +21,11 @@ class Page(object):
     def __init__(self, paginator, number):
         # we only accept integer page numbers
         if type(number) is not int:
-            raise PageNotAnInteger('{0} is not an integer'.format(number))
+            raise PageNotAnInteger('{} is not an integer'.format(number))
 
         # make sure we get a page in range
         if number < 1 or (number > paginator.num_pages > 1):
-            raise InvalidPage('{0} is not a valid page number'.format(number))
+            raise InvalidPage('{} is not a valid page number'.format(number))
 
         self.paginator = paginator
         self.number = number

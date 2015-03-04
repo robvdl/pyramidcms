@@ -35,4 +35,4 @@ class BaseLayoutTests(TestCase):
         pyramid.testing.DummyRequest.
         """
         layout = BaseLayout(self.request)
-        self.assertEqual(layout.csrf_token, '0123456789012345678901234567890123456789')
+        self.assertEqual(layout.csrf_token, '01234567890123456789' * 2)
