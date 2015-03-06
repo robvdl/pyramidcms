@@ -20,7 +20,6 @@ class ApiBase(object):
     classes more complex and just wasn't that useful, so page was used
     instead of offset.
     """
-
     _services = None
 
     class Meta:
@@ -70,7 +69,6 @@ class ApiBase(object):
             'meta': {
                 'limit': paginator.per_page,
                 'next': next_page_url,
-                'offset': page.offset,
                 'page': page.number,
                 'previous': prev_page_url,
                 'total_count': paginator.count

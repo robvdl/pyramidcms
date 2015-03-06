@@ -63,7 +63,6 @@ class ApiBaseTest(TestCase):
         self.assertDictEqual(data['meta'], {
             'limit': 20,
             'next': None,
-            'offset': 0,
             'page': 1,
             'previous': None,
             'total_count': 0,
@@ -79,7 +78,6 @@ class ApiBaseTest(TestCase):
         self.assertDictEqual(data['meta'], {
             'limit': 10,
             'next': '/api/user?page=3',
-            'offset': 10,
             'page': 2,
             'previous': '/api/user?page=1',
             'total_count': 1000,
