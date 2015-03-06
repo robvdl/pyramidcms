@@ -1,18 +1,25 @@
 from unittest import TestCase
 
 from pyramid import testing
+from pyramid.httpexceptions import HTTPBadRequest
 from cornice.resource import resource
 
 from pyramidcms.api import ApiBase
 
 
-@resource(collection_path='/api/simple', path='/api/simple/{id}')
-class SimpleMockApi(ApiBase):
+@resource(collection_path='/api/group', path='/api/group/{id}')
+class MockGroupApi(ApiBase):
+    """
+    A very simple mock API without any customisations.
+    """
     pass
 
 
-@resource(collection_path='/api/mock', path='/api/mock/{id}')
-class MockApi(ApiBase):
+@resource(collection_path='/api/user', path='/api/user/{id}')
+class MockUserApi(ApiBase):
+    """
+    Another mock API, this one has 1000 items and a custom limit.
+    """
 
     class Meta:
         limit = 10
@@ -22,46 +29,64 @@ class MockApi(ApiBase):
 
 
 class ApiBaseTest(TestCase):
-
-    def setUp(self):
-        self.config = testing.setUp()
-        self.request = testing.DummyRequest()
-        self.simple_api = SimpleMockApi(self.request)
-        self.api = MockApi(self.request)
-
-    def tearDown(self):
-        testing.tearDown()
+    """
+    Tests the API base class by registering some actual mock APIs.
+    """
 
     def test_constructor(self):
-        self.assertEqual(self.simple_api.request, self.request)
-        self.assertEqual(self.simple_api.api_url, '/api/simple')
-        self.assertEqual(self.simple_api.meta.limit, 20)
+        """
+        Tests that the api_url property is generated properly when creating
+        and instance of an API class.
+        """
+        request = testing.DummyRequest()
+        group_api = MockGroupApi(request)
+        user_api = MockUserApi(request)
 
-        self.assertEqual(self.api.request, self.request)
-        self.assertEqual(self.api.api_url, '/api/mock')
-        self.assertEqual(self.api.meta.limit, 10)
+        self.assertEqual(group_api.request, request)
+        self.assertEqual(group_api.api_url, '/api/group')
+        self.assertEqual(group_api._meta.limit, 20)
+
+        self.assertEqual(user_api.request, request)
+        self.assertEqual(user_api.api_url, '/api/user')
+        self.assertEqual(user_api._meta.limit, 10)
 
     def test_collection_get(self):
-        # simple api with empty list
-        data = self.simple_api.collection_get()
+        """
+        Tests the API collection_get method, which returns a list of items.
+        """
+        # simple api with an empty list
+        request = testing.DummyRequest()
+        group_api = MockGroupApi(request)
+        data = group_api.collection_get()
         self.assertEqual(type(data), dict)
         self.assertListEqual(sorted(data.keys()), ['items', 'meta'])
         self.assertDictEqual(data['meta'], {
             'limit': 20,
             'next': None,
             'offset': 0,
+            'page': 1,
             'previous': None,
             'total_count': 0,
         })
 
-        # more complex api with more items and custom meta class
-        data = self.api.collection_get()
+        # a slightly more complex api with some items and custom limit, also
+        # tests the second page, so we can check the previous page property.
+        request = testing.DummyRequest(params={'page': '2'})
+        user_api = MockUserApi(request)
+        data = user_api.collection_get()
         self.assertEqual(type(data), dict)
         self.assertListEqual(sorted(data.keys()), ['items', 'meta'])
         self.assertDictEqual(data['meta'], {
             'limit': 10,
-            'next': '/api/mock?offset=10',
-            'offset': 0,
-            'previous': None,
+            'next': '/api/user?page=3',
+            'offset': 10,
+            'page': 2,
+            'previous': '/api/user?page=1',
             'total_count': 1000,
         })
+
+        # test with an invalid page number, should raise a 400 bad request
+        request = testing.DummyRequest(params={'page': 'invalid'})
+        user_api = MockUserApi(request)
+        with self.assertRaises(HTTPBadRequest):
+            user_api.collection_get()
