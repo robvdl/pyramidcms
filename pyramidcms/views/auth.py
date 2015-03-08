@@ -11,6 +11,7 @@ class AuthViews(BaseLayout):
     """
     Authentication views: login, logout.
     """
+
     @view_config(route_name='login', renderer='login.jinja2')
     @forbidden_view_config(renderer='login.jinja2')
     def login(self):
