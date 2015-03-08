@@ -21,7 +21,7 @@ class TestLoginView(TestCase):
         self.assertDictEqual(result, {
             'return_url': request.url,
             'form': form_instance_mock
-        })        
+        })
 
     def test_disabled_user_login_fails(self):
         # create a mock POST request
