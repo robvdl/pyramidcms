@@ -4,18 +4,17 @@ from unittest.mock import Mock, patch
 from pyramid import testing
 
 from pyramidcms.views.auth import AuthViews
-from pyramidcms.forms.auth import LoginForm
 
 
 class TestLoginView(TestCase):
 
     def test_login_form(self):
         form_instance_mock = Mock()
+        form_class_mock = Mock(return_value=form_instance_mock)
         request = testing.DummyRequest()
         view = AuthViews(request)
 
-        with patch('pyramidcms.forms.auth.LoginForm', 
-                   Mock(return_value=form_instance_mock)):
+        with patch('pyramidcms.views.auth.LoginForm', form_class_mock):
             result = view.login()
 
         self.assertDictEqual(result, {
