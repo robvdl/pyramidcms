@@ -28,8 +28,10 @@ class AuthViews(BaseLayout):
                     self.session.new_csrf_token()
                     self.session.flash('You are logged in', queue='success')
                     return HTTPFound(location=return_url, headers=headers)
-                self.session.flash('User account is disabled', queue='error')
-            self.session.flash('Invalid username or password', queue='error')
+                else:
+                    self.session.flash('User account is disabled', queue='error')
+            else:
+                self.session.flash('Invalid username or password', queue='error')
 
         return {
             'return_url': return_url,
