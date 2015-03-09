@@ -22,12 +22,16 @@ class AuthViews(BaseLayout):
             password = form.password.data
             user = User.objects.get(username=username)
             if user and user.check_password(password):
-                headers = remember(self.request, username)
-                # refresh csrf_token on login for some extra security
-                self.session.new_csrf_token()
-                self.session.flash('You are logged in', queue='success')
-                return HTTPFound(location=return_url, headers=headers)
-            self.session.flash('Invalid username or password', queue='error')
+                if user.active:
+                    headers = remember(self.request, username)
+                    # refresh csrf_token on login for some extra security
+                    self.session.new_csrf_token()
+                    self.session.flash('You are logged in', queue='success')
+                    return HTTPFound(location=return_url, headers=headers)
+                else:
+                    self.session.flash('User account is disabled', queue='error')
+            else:
+                self.session.flash('Invalid username or password', queue='error')
 
         return {
             'return_url': return_url,
