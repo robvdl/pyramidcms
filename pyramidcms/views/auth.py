@@ -26,6 +26,8 @@ class AuthViews(BaseLayout):
                     headers = remember(self.request, username)
                     # refresh csrf_token on login for some extra security
                     self.session.new_csrf_token()
+                    # set last login time and date
+                    user.set_last_login()
                     self.session.flash('You are logged in', queue='success')
                     return HTTPFound(location=return_url, headers=headers)
                 else:

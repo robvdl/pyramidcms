@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from sqlalchemy import ForeignKey, func
 from sqlalchemy import Column, Integer, String, Boolean, Table, DateTime
 from sqlalchemy.orm import relationship
@@ -109,3 +111,9 @@ class User(Model):
         """
         group_ids = [group.id for group in self.groups]
         return DBSession.query(Permission).join(Group.permissions).filter(Group.id.in_(group_ids))
+
+    def set_last_login(self):
+        """
+        Sets the last login in local time.
+        """
+        self.last_login = datetime.now()
