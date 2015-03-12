@@ -117,3 +117,4 @@ class User(Model):
         Sets the last login in local time.
         """
         self.last_login = datetime.now()
+        self.save()
