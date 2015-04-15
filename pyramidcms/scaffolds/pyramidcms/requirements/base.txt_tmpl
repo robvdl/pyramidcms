@@ -1,2 +1,2 @@
-pyramidcms==0.1
+pyramidcms==0.0.1
 gunicorn==19.3

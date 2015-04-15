@@ -18,7 +18,7 @@ with open(os.path.join(here, 'requirements/dev.txt')) as f:
 
 setup(
     name='pyramidcms',
-    version='0.1',
+    version='0.0.1',
     description='Content management system in Pyramid',
     long_description=README + '\n\n' + CHANGES,
     classifiers=[
