@@ -17,9 +17,9 @@ with open(os.path.join(here, 'requirements/dev.txt')) as f:
     DEV_REQUIRES = [l.strip() for l in f.readlines()]
 
 setup(
-    name='pyramidcms',
+    name='{{project}}',
     version='0.1',
-    description='Content management system in Pyramid',
+    description='{{project}}',
     long_description=README + '\n\n' + CHANGES,
     classifiers=[
         "Programming Language :: Python",
@@ -27,23 +27,19 @@ setup(
         "Topic :: Internet :: WWW/HTTP",
         "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
     ],
-    author='Rob van der Linde',
-    author_email='robvdl@gmail.com',
-    url='https://github.com/robvdl/pyramidcms',
-    keywords='web wsgi bfg pylons pyramid cms',
+    author='',
+    author_email='',
+    url='',
+    keywords='web pyramid pylons',
     packages=find_packages(),
     include_package_data=True,
     zip_safe=False,
     install_requires=REQUIRES,
     tests_require=DEV_REQUIRES,
     extras_require={'dev': DEV_REQUIRES},
-    test_suite='nose.collector',
+    test_suite="{{package}}",
     entry_points="""\
     [paste.app_factory]
-    main = pyramidcms:main
-    [console_scripts]
-    pcms = pyramidcms.cli:main
-    [pyramid.scaffold]
-    pyramidcms=pyramidcms.scaffolds:PyramidCMSProjectTemplate
+    main = {{package}}:main
     """,
 )

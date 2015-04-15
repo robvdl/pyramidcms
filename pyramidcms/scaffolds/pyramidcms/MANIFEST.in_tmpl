@@ -1,0 +1,4 @@
+include *.txt *.ini *.cfg *.rst
+recursive-include {{package}}/templates *
+recursive-include {{package}}/static *
+recursive-include requirements *

@@ -21,7 +21,7 @@ Setting up a development environment::
     mkvirtualenv pyramidcms -p /usr/bin/python3
     git clone git@github.com:robvdl/pyramidcms.git
     cd pyramidcms
-    ./setup.py develop
+    python3 setup.py develop
 
 Once installed, this will create a local pyramidcms.ini file for development::
 
