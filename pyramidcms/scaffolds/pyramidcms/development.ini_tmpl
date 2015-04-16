@@ -18,6 +18,14 @@ pyramid.includes =
 # '127.0.0.1' and '::1'.
 # debugtoolbar.hosts = 127.0.0.1 ::1
 
+# In production use a better database if possible, e.g. PostgreSQL.
+sqlalchemy.url = sqlite:///%(here)s/{{package}}.db
+
+# Keep this key safe, never store the secret key in GIT for production systems.
+session.secret = {{secret_key}}
+session.cookie_httponly = True
+session.cookie_secure = False
+
 ###
 # wsgi server configuration
 ###
