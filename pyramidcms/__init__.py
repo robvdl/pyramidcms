@@ -1,7 +1,7 @@
 from sqlalchemy import engine_from_config
 
 from pyramidcms.db import DBSession, Base
-from pyramidcms.security import groupfinder, get_current_user, RootFactory
+from pyramidcms.security import get_current_user
 
 
 def includeme(config):
