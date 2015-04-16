@@ -8,4 +8,4 @@ zope.sqlalchemy==0.7.6
 passlib==1.6.2
 alembic==0.7.5.post2
 WTForms==2.0.2
-cornice==0.20.0
+cornice==1.0.0
