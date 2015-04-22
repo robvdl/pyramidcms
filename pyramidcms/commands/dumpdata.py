@@ -3,7 +3,7 @@ import json
 import argparse
 
 from pyramidcms.cli import BaseCommand
-from pyramidcms.db import models
+from pyramidcms import models
 
 
 class Command(BaseCommand):
@@ -23,5 +23,6 @@ class Command(BaseCommand):
             model = getattr(models, cls)
             json_data.append({'model': cls, 'objects': [obj.serialize() for obj in model.objects.all()]})
 
+        # TODO: indentation should probably be an optional command line arg
         json.dump(json_data, sys.stdout, indent=4)
         sys.stdout.write('\n')

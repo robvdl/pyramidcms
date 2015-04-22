@@ -1,6 +1,6 @@
 from pyramid.security import Allow, ALL_PERMISSIONS
 
-from pyramidcms.db.models import User, Permission
+from pyramidcms.models import User, Permission
 
 
 def groupfinder(username, request):

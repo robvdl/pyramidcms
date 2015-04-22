@@ -3,7 +3,7 @@ from pyramid.security import remember, forget
 from pyramid.httpexceptions import HTTPFound
 
 from pyramidcms.layouts.base import BaseLayout
-from pyramidcms.db.models import User
+from pyramidcms.models import User
 from pyramidcms.forms.auth import LoginForm
 
 

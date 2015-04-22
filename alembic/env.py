@@ -16,7 +16,8 @@ from sqlalchemy import engine_from_config, pool
 from pyramid.paster import get_appsettings, setup_logging
 
 from alembic import context
-from pyramidcms.db import Base, models
+from pyramidcms import models
+from pyramidcms.db import Base
 
 alembic_config = context.config
 pyramid_config_file = alembic_config.get_main_option('pyramid_config_file')

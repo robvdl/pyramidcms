@@ -6,10 +6,16 @@ This module contains all the built-in management commands.
 .. automodule:: pyramidcms.commands
     :members:
 
-createconfig
-============
+createsuperuser
+===============
 
-.. automodule:: pyramidcms.commands.createconfig
+.. automodule:: pyramidcms.commands.createsuperuser
+    :members:
+
+dbshell
+=======
+
+.. automodule:: pyramidcms.commands.dbshell
     :members:
 
 dumpdata
@@ -28,10 +34,4 @@ shell
 =====
 
 .. automodule:: pyramidcms.commands.shell
-    :members:
-
-dbshell
-=======
-
-.. automodule:: pyramidcms.commands.dbshell
     :members:

@@ -3,7 +3,7 @@ import transaction
 
 from pyramidcms.core.validators import RE_VALID_EMAIL
 from pyramidcms.cli import BaseCommand
-from pyramidcms.db.models import User
+from pyramidcms.models import User
 
 
 class Command(BaseCommand):

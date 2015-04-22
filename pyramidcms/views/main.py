@@ -3,7 +3,7 @@ from pyramid.response import Response
 from sqlalchemy.exc import DBAPIError
 
 from pyramidcms.layouts.base import BaseLayout
-from pyramidcms.db.models import User
+from pyramidcms.models import User
 
 
 class MainViews(BaseLayout):

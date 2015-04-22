@@ -16,6 +16,7 @@ Contents:
    core
    layouts
    db
+   models
    views
    security
 
