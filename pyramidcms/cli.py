@@ -88,28 +88,6 @@ class BaseCommand(object):
         pass
 
 
-def get_command_from_args(app, args):
-    """
-    Returns the command given an argparse instance.
-
-    The command is normally the first argument, unless the command
-    was "pcms help command" in which case it's the second argument.
-
-    Running "pcms help command" is actually the same as "pcms command -h".
-
-    :param app: The filename (without path) of the command line app
-    :param args: An argparse object containing the parsed arguments
-    :returns: The command (a string) that was parsed from args
-    """
-    if args.command[0] == 'help':
-        if len(args.command) == 2:
-            return args.command[1]
-        else:
-            raise CommandError('"{} help" command requires exactly one argument'.format(app))
-    else:
-        return args.command[0]
-
-
 def load_command(app, command, settings):
     """
     Given the command as a string, try to load it as as module

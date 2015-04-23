@@ -21,30 +21,6 @@ class CliFrameworkTests(TestCase):
             'test_setting': 'setting_value',
         }
 
-    def test_get_command_form_args(self):
-        """
-        Unit test for :func:`pyramidcms.cli.get_command_from_args`
-
-        The get_command_from_args method returns the pcms sub-command, parsed
-        from a list of arguments, usually this is the first array item, unless
-        the command is "help" in which case it's the next array item.
-
-        Should also raise an exception when "help" is used without
-        a command following after.
-        """
-        # command should be the first argument
-        args = self.parser.parse_args(['command1'])
-        self.assertEqual(cli.get_command_from_args('pcms', args), 'command1')
-
-        # help followed by command should return first argument
-        args = self.parser.parse_args(['help', 'command2'])
-        self.assertEqual(cli.get_command_from_args('pcms', args), 'command2')
-
-        # help without a command should raise CommandError
-        args = self.parser.parse_args(['help'])
-        with self.assertRaises(CommandError):
-            cli.get_command_from_args('pcms', args)
-
     @patch('importlib.import_module')
     def test_load_command__success(self, mock_import):
         """
