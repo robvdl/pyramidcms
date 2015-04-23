@@ -1,3 +1,6 @@
+import os
+import codecs
+
 from pyramid.security import Allow, ALL_PERMISSIONS
 
 from pyramidcms.models import User, Permission
@@ -34,6 +37,13 @@ def get_current_user(request):
     username = request.unauthenticated_userid
     if username is not None:
         return User.objects.get(username=username)
+
+
+def secret_key_generator(length):
+    """
+    Generate a new secret key using length given.
+    """
+    return codecs.encode(os.urandom(length), 'hex').decode('utf-8')
 
 
 class RootFactory(object):

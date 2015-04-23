@@ -5,9 +5,8 @@ import argparse
 import importlib
 
 from pyramid.paster import get_appsettings, setup_logging
-from sqlalchemy import engine_from_config
 
-from pyramidcms.db import DBSession
+from pyramidcms.db import setup_db_connection
 from pyramidcms.core.exceptions import CommandError
 
 
@@ -35,19 +34,9 @@ class BaseCommand(object):
         :param command: the name of the command
         :param settings: Pyramid app settings or an empty dict if no ini file.
         """
-        self.parser = argparse.ArgumentParser(prog='{} {}'.format(app, command))
+        self.parser = argparse.ArgumentParser(prog='{} {} config_uri'.format(app, command))
         self.settings = settings
-        self.init_db()
         self.setup_args(self.parser)
-
-    def init_db(self):
-        """
-        Establishes a connection to the database when the command
-        starts up and the .ini file was loaded successfully.
-        """
-        if 'sqlalchemy.url' in self.settings:
-            engine = engine_from_config(self.settings, 'sqlalchemy.')
-            DBSession.configure(bind=engine)
 
     def run(self, *args):
         """
@@ -58,8 +47,8 @@ class BaseCommand(object):
 
         :param args: a list of arguments following the command
         """
-        args = self.parser.parse_args(args)
-        self.handle(args)
+        command_args = self.parser.parse_args(args)
+        self.handle(command_args)
 
     def help(self):
         """
@@ -152,79 +141,98 @@ def get_command_list():
 
     Because of this, we are doing it using the filesystem instead.
     """
-    commands = [os.path.basename(f.strip('.py')) for f in glob.glob('pyramidcms/commands/*.py')]
+    pattern = os.path.join(os.path.dirname(__file__), 'commands/*.py')
+    commands = [os.path.basename(f.strip('.py')) for f in glob.glob(pattern)]
     commands.remove('__init__')
     return commands
 
 
-def print_command_list():
+def show_pcms_help(parser):
     """
-    Prints a list of available commands, this should be done right
-    after printing the default argparse help text.
+    Show help for the pcms cli tool.
+
+    :param parser: :obj:`argparse.ArgumentParser` instance.
     """
+    parser.print_help()
     command_list = '\n  '.join(get_command_list())
     print('\navailable commands:\n  {}\n'.format(command_list))
+
+
+def show_command_help(app, command):
+    """
+    Show help for the given pcms sub-command.
+
+    :param app: name of command line app, e.g. "pcms"
+    :param command: name of the sub-command, e.g. "dbshell"
+    """
+    cmd = load_command(app, command, {})
+    cmd.help()
+
+
+def run_command(app, command, command_args, settings):
+    """
+    Run the given pcms sub-command.
+
+    :param app: name of command line app, e.g. "pcms"
+    :param command: name of the sub-command, e.g. "dbshell"
+    :param settings: pyramid settings dict.
+    """
+    cmd = load_command(app, command, settings)
+    cmd.run(*command_args)
 
 
 def main(argv=sys.argv):
     """
     The entry point to all management commands.
 
-    In a nutshell, this sets up argparse and gets the command from argv,
-    then tries to load that module dynamically from pyramidcms.commands.<command>,
-    we then get an instance of that command, "cmd" if the module loaded
-    successfully.
+    If "pcms" is run without any arguments, show general help.
 
-    If we ran "pcms command ..." then we run "cmd.run(...)" giving it the
-    remaining arguments.  See the :meth:`BaseCommand.run()` what happens
-    there, but essentially handle() gets called in the command class
-    and is given another argparse instance with the remaining arguments.
+    If "pcms help command" is run, try to load the given command dynamically
+    and show the argparse help for that command.
 
-    If we ran "pcms help command" however, we show the argparse help page
-    for that command using "cmd.help()", which is actually just the same
-    as running "pcms command -h".
+    if "pcms command development.ini" is run, try to load the given command
+    and execute it, remaining arguments after the ini file argument are given
+    to the commands own argparser instance.
 
-    The pyramidcms.ini file is also loaded and the database connection is
-    established before the command is even run, so that when entering the
-    handle() method of the command, the database is up and Pyramid settings
-    are available under "self.settings".
+    The database connection is only established when a command is run.
 
     :param argv: argv array, if None defaults to sys.argv.
     """
-    # the default .ini file if none is specified
-    default_ini = 'pyramidcms.ini'
-
     # app is the name of the cli executable
     app = os.path.basename(argv[0])
 
     # main parser object, we create another one for the command we are running
     parser = argparse.ArgumentParser()
-    parser.add_argument('--ini', metavar='ini_file', type=str, nargs=1,
-                        default=[default_ini],
-                        help='Location of the config file (defaults to {})'.format(default_ini))
-    parser.add_argument('command', type=str, nargs=argparse.REMAINDER,
-                        help='The command to run, type {} help <command> for more help.'.format(app))
 
-    args = parser.parse_args(argv[1:])
-    if args.command:
-        ini_file = args.ini[0]
-        command = get_command_from_args(app, args)
+    parser.add_argument('command', type=str,
+                        help='The command to run (see available commands below).')
+    parser.add_argument('config_uri', type=str,
+                        help='The Pyramid ini file to use (PasteDeploy configuration file).')
+    parser.add_argument('command_args', type=str, nargs=argparse.REMAINDER,
+                        help='Optional command arguments (see: "{} help <command>").'.format(app))
 
-        # load .ini file, if this file doesn't exist the
-        # settings objects will end up an empty dict
-        try:
-            setup_logging(ini_file)
-            settings = get_appsettings(ini_file)
-        except FileNotFoundError:
-            # The ini file could not be loaded, but the command might still
-            # want to know it's path so store __file__.
-            settings = {'__file__': default_ini}
-
-        cmd = load_command(app, command, settings)
-        if args.command[0] == 'help':
-            cmd.help()
-        else:
-            cmd.run(*args.command[1:])
+    if len(argv) < 2:
+        # "pcms" without arguments, show pcms help
+        show_pcms_help(parser)
     else:
-        parser.print_help()
-        print_command_list()
+        # command help doesn't require an .ini file.
+        if argv[1] == 'help':
+            if len(argv) == 3:
+                # "pcms help command", show command help
+                show_command_help(app, argv[2])
+            else:
+                # "pcms help" with incorrect number of args, show pcms help
+                show_pcms_help(parser)
+                raise CommandError('"{} help" used without any arguments.'.format(app))
+        else:
+            # run command, this requires an .ini file.
+            args = parser.parse_args(argv[1:])
+
+            try:
+                setup_logging(args.config_uri)
+                settings = get_appsettings(args.config_uri)
+            except FileNotFoundError:
+                raise CommandError('Failed to open ini file "{}".'.format(args.config_uri))
+
+            setup_db_connection(settings)
+            run_command(app, args.command, args.command_args, settings)

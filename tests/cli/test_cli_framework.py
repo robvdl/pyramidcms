@@ -99,10 +99,9 @@ class CliFrameworkTests(TestCase):
         glob_mock.return_value = ['/path/file1.py', '/path/file2.py', '/path/__init__.py']
         self.assertListEqual(cli.get_command_list(), ['file1', 'file2'])
 
-    @patch('pyramidcms.cli.load_command')
     @patch('pyramidcms.cli.get_appsettings')
     @patch('pyramidcms.cli.setup_logging', Mock())
-    def test_main(self, mock_get_appsettings, mock_load_command):
+    def test_main(self, mock_get_appsettings):
         """
         Tests the application entry point (main method) of the cli app.
 
@@ -112,46 +111,49 @@ class CliFrameworkTests(TestCase):
         This tests the various code paths the main method can take:
 
         * Typing "pcms" without anything after it (show global help)
-        * Typing "pcms help" but missing the command after it
+        * Typing "pcms help" but missing the command (raise CommandError)
         * Typing "pcms help command" (show help on a particular command)
-        * Typing "pcms command" (run a command)
-        * Typing "pcms command" but the pyramidcms.ini file does not exist
-
-        When the pyramidcms.ini file does not exist, some commands still need
-        to be able to work (namely the createconfig command), in which case
-        the cli framework uses a default settings object.
+        * Typing "pcms command development.ini" (run a command)
         """
         app = 'pcms'
         mock_get_appsettings.return_value = self.mock_settings
 
-        # Calling pcms without any arguments will show the help page.
-        # We aren't testing anything specific here, such as exact screen
-        # output, the main thing is to ensure this doesn't crash.
-        cli.main([app])
+        # "pcms" without arguments should show the help page.
+        with patch('pyramidcms.cli.show_pcms_help') as help_mock:
+            cli.main([app])
+            self.assertTrue(help_mock.called)
 
-        # "pcms help" without a command raises CommandError
-        with self.assertRaises(CommandError):
-            cli.main([app, 'help'])
+        # "pcms help" without a command shows help and raises CommandError.
+        with patch('pyramidcms.cli.show_pcms_help') as help_mock:
+            with self.assertRaises(CommandError):
+                cli.main([app, 'help'])
+                self.assertTrue(help_mock.called)
 
-        # "pcms help command" will instantiate Command class and call .help()
-        cli.main([app, 'help', 'command1'])
-        mock_load_command.assert_called_once_with(app, 'command1', self.mock_settings)
-        mock_command = mock_load_command.return_value
-        mock_command.help.assert_called_once_with()
-        self.assertEqual(mock_command.run.call_count, 0)
+        # "pcms help command" will shows help for a specific command.
+        with patch('pyramidcms.cli.show_command_help') as help_mock:
+            cli.main([app, 'help', 'command1'])
+            help_mock.assert_called_once_with(app, 'command1')
 
-        # "pcms command" will instantiate Command class and call .run()
-        mock_load_command.reset_mock()
-        cli.main([app, 'command2'])
-        mock_load_command.assert_called_once_with(app, 'command2', self.mock_settings)
-        mock_command = mock_load_command.return_value
-        mock_command.run.assert_called_once_with()
-        self.assertEqual(mock_command.help.call_count, 0)
+        # "pcms command development.ini" should run the command.
+        with patch('pyramidcms.cli.setup_db_connection') as db_connect_mock:
+            with patch('pyramidcms.cli.run_command') as run_command_mock:
+                cli.main([app, 'command2', 'development.ini'])
+                db_connect_mock.assert_called_once_with(self.mock_settings)
+                run_command_mock.assert_called_once_with(app, 'command2', [], self.mock_settings)
 
-        # "pcms command" but pyramidcms.ini file does not exist
-        # the command should still work but with a default settings object
+        # "pcms command production.ini arg1 arg2" should capture arguments.
+        with patch('pyramidcms.cli.setup_db_connection') as db_connect_mock:
+            with patch('pyramidcms.cli.run_command') as run_command_mock:
+                cli.main([app, 'command3', 'production.ini', 'arg1', 'arg2'])
+                db_connect_mock.assert_called_once_with(self.mock_settings)
+                run_command_mock.assert_called_once_with(app, 'command3', ['arg1', 'arg2'], self.mock_settings)
+
+        # "pcms command development.ini" but .ini file does not exist.
         mock_get_appsettings.side_effect = FileNotFoundError
-        mock_load_command.reset_mock()
-        cli.main([app, 'command3'])
-        default_settings = {'__file__': 'pyramidcms.ini'}
-        mock_load_command.assert_called_once_with(app, 'command3', default_settings)
+        with self.assertRaises(CommandError):
+            cli.main([app, 'command4', 'development.ini'])
+
+        # "pcms command" without an .ini fails argparse and raises SystemExit.
+        with self.assertRaises(SystemExit) as cm:
+            cli.main([app, 'command5'])
+            self.assertEqual(cm.exception.code, 2)

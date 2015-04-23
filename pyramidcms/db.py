@@ -1,13 +1,25 @@
 import re
 from datetime import datetime
 
-from sqlalchemy import Column, Integer, inspect
+from sqlalchemy import Column, Integer, inspect, engine_from_config
 from sqlalchemy.orm import scoped_session, sessionmaker, class_mapper
 from sqlalchemy.orm.collections import InstrumentedList
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
 from zope.sqlalchemy import ZopeTransactionExtension
 
+# this regex is used to convert camelcase model names to table names
 RE_CAMELCASE = re.compile(r'([A-Z]+)(?=[a-z0-9])')
+
+
+def setup_db_connection(settings):
+    """
+    Initialises the database connection.
+
+    :param settings: Pyramid settings object
+    """
+    engine = engine_from_config(settings, 'sqlalchemy.')
+    DBSession.configure(bind=engine)
+    Base.metadata.bind = engine
 
 
 class ModelManager(object):

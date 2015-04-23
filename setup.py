@@ -44,6 +44,6 @@ setup(
     [console_scripts]
     pcms = pyramidcms.cli:main
     [pyramid.scaffold]
-    pyramidcms=pyramidcms.scaffolds:PyramidCMSProjectTemplate
+    pyramidcms=pyramidcms.scaffolds:CMSProjectTemplate
     """,
 )

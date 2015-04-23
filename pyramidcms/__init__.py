@@ -1,6 +1,4 @@
-from sqlalchemy import engine_from_config
-
-from .db import DBSession, Base
+from .db import setup_db_connection
 from .security import get_current_user
 
 
@@ -11,10 +9,8 @@ def includeme(config):
     # we can get to the settings object through config.registry
     settings = config.registry.settings
 
-    # initialise SQLAlchemy
-    engine = engine_from_config(settings, 'sqlalchemy.')
-    DBSession.configure(bind=engine)
-    Base.metadata.bind = engine
+    # initialise the database connection
+    setup_db_connection(settings)
 
     # pyramidcms dependencies
     config.include('pyramid_jinja2')
