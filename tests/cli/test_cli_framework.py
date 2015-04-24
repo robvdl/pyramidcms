@@ -15,9 +15,9 @@ class CliFrameworkTests(TestCase):
         self.parser = argparse.ArgumentParser()
         self.parser.add_argument('command', type=str, nargs=argparse.REMAINDER)
 
-        # mock pyramid settings dict
+        # a mock pyramid settings dict, used by some of the tests
         self.mock_settings = {
-            '__file__': 'pyramidcms.ini',
+            '__file__': 'development.ini',
             'test_setting': 'setting_value',
         }
 

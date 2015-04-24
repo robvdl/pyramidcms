@@ -120,7 +120,7 @@ def get_command_list():
     Because of this, we are doing it using the filesystem instead.
     """
     pattern = os.path.join(os.path.dirname(__file__), 'commands/*.py')
-    commands = [os.path.basename(f.strip('.py')) for f in glob.glob(pattern)]
+    commands = [os.path.basename(f[:-3]) for f in glob.glob(pattern)]
     commands.remove('__init__')
     return commands
 
