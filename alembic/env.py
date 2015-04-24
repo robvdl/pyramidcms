@@ -10,6 +10,7 @@ logging configuration), the settings that were already in pyramidcms.ini
 are now loaded from there instead and are removed from alembic.ini.
 """
 
+import sys
 import logging
 
 from sqlalchemy import engine_from_config, pool
@@ -20,10 +21,18 @@ from pyramidcms import models
 from pyramidcms.db import Base
 
 alembic_config = context.config
-pyramid_config_file = alembic_config.get_main_option('pyramid_config_file')
-setup_logging(pyramid_config_file)
-app_settings = get_appsettings(pyramid_config_file)
 
+# Load the pyramid config file sent from the -x argument,
+# this is actually done by the "pcms migrate" command.
+try:
+    pyramid_config_file = context.get_x_argument()[0]
+except IndexError:
+    # The -x argument was not used, alembic was probably executed manually.
+    print('Please run alembic using the pcms migrate command instead.')
+    sys.exit(2)
+
+setup_logging(pyramid_config_file)
+settings = get_appsettings(pyramid_config_file)
 target_metadata = Base.metadata
 
 log = logging.getLogger(__name__)
@@ -41,7 +50,7 @@ def run_migrations_offline():
     Calls to context.execute() here emit the given string to the
     script output.
     """
-    url = app_settings['sqlalchemy.url']
+    url = settings['sqlalchemy.url']
     context.configure(url=url, target_metadata=target_metadata)
 
     with context.begin_transaction():
@@ -56,7 +65,7 @@ def run_migrations_online():
     and associate a connection with the context.
     """
     engine = engine_from_config(
-        app_settings,
+        settings,
         prefix='sqlalchemy.',
         poolclass=pool.NullPool)
 
