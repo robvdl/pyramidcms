@@ -1,13 +1,5 @@
 """
 Alembic migration environment for PyramidCMS.
-
-Note that there are some differences to a regular Alembic environment,
-mainly that we are using two ini files: pyramidcms.ini and alembic.ini
-
-To avoid having to store duplicate settings in both the alembic.ini
-and pyramidcms.ini files (for example the SQLAlchemy connection URL and
-logging configuration), the settings that were already in pyramidcms.ini
-are now loaded from there instead and are removed from alembic.ini.
 """
 
 import sys
@@ -20,10 +12,9 @@ from alembic import context
 from pyramidcms import models
 from pyramidcms.db import Base
 
-alembic_config = context.config
 
-# Load the pyramid config file sent from the -x argument,
-# this is actually done by the "pcms migrate" command.
+# load the .ini file for the project that is using pyramid from the -x
+# argument, this is actually sent by the "pcms migrate" command.
 try:
     pyramid_config_file = context.get_x_argument()[0]
 except IndexError:
@@ -31,10 +22,10 @@ except IndexError:
     print('Please run alembic using the pcms migrate command instead.')
     sys.exit(2)
 
+alembic_config = context.config
 setup_logging(pyramid_config_file)
 settings = get_appsettings(pyramid_config_file)
 target_metadata = Base.metadata
-
 log = logging.getLogger(__name__)
 
 
@@ -81,6 +72,8 @@ def run_migrations_online():
         connection.close()
 
 
+log.info('PyramidCMS migrations')
+log.info('---------------------')
 log.info('Using models:')
 for cls in models.__all__:
     log.info(' - ' + cls)
