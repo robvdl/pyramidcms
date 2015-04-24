@@ -4,11 +4,10 @@ from pyramidcms.security import secret_key_generator
 
 class Command(BaseCommand):
     """
-    Dumps all models to JSON, can be piped into a file to generate fixtures.
+    Generate a secret key using os.urandom and encode in hex.
 
-    Can also specify a list of models to dump a specific set.
+    Does not update the ini file itself, it just prints a key on the screen.
     """
 
     def handle(self, args):
-        print('The following key can be used as a session_secret:')
         print(secret_key_generator(40))
