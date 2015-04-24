@@ -1,5 +1,6 @@
 import os
 import shlex
+import argparse
 from subprocess import call
 
 from pyramidcms.cli import BaseCommand
@@ -10,6 +11,12 @@ class Command(BaseCommand):
     Runs the alembic migrations, first for PyramidCMS and then the project
     using the CMS which can have migrations of it's own.
     """
+
+    def setup_args(self, parser):
+        # optional argument
+        parser.add_argument('alembic_args', type=str,
+                            nargs=argparse.ZERO_OR_MORE, default=['head'],
+                            help='Arguments for the "alembic upgrade" command.')
 
     def handle(self, args):
         """
@@ -32,7 +39,8 @@ class Command(BaseCommand):
         # FIXME: this probably won't work with spaces in the path.
         # We could possibly URL-encode the path to handle spaces, then decode
         # it in env.py to get around this issue.
-        command = 'alembic -c {} -x {} upgrade head'.format(pcms_alembic_ini, project_ini)
-        call(shlex.split(command), cwd=os.path.dirname(pcms_alembic_ini))
+        cmd = shlex.split('alembic -c {} -x {} upgrade'.format(pcms_alembic_ini, project_ini))
+        cmd.extend(args.alembic_args)
+        call(cmd, cwd=os.path.dirname(pcms_alembic_ini))
 
         # TODO: run migrations in project next
