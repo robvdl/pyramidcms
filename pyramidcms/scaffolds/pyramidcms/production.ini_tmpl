@@ -31,12 +31,24 @@ port = 6543
 workers = 4
 
 ###
+# Alembic configuration
+# http://alembic.readthedocs.org/en/latest/tutorial.html#editing-the-ini-file
+###
+
+[alembic]
+# the alembic migration environment location
+script_location = {{package}}:alembic
+
+# version locations, this must contain the pyramidcms and {{package}} version directories
+version_locations = pyramidcms:alembic/versions {{package}}:alembic/versions
+
+###
 # logging configuration
 # http://docs.pylonsproject.org/projects/pyramid/en/{{pyramid_docs_branch}}/narr/logging.html
 ###
 
 [loggers]
-keys = root, {{package_logger}}
+keys = root, {{package_logger}}, sqlalchemy, alembic
 
 [handlers]
 keys = console
@@ -52,6 +64,19 @@ handlers = console
 level = WARN
 handlers =
 qualname = {{package}}
+
+[logger_sqlalchemy]
+level = WARN
+handlers =
+qualname = sqlalchemy.engine
+# "level = INFO" logs SQL queries.
+# "level = DEBUG" logs SQL queries and results.
+# "level = WARN" logs neither.  (Recommended for production systems.)
+
+[logger_alembic]
+level = INFO
+handlers =
+qualname = alembic
 
 [handler_console]
 class = StreamHandler

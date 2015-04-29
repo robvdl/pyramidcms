@@ -1,15 +1,15 @@
 """
-Initial migration
+create initial pyramidcms tables.
 
-Revision ID: 32b7677509c
+Revision ID: 1366e00ae45
 Revises:
-Create Date: 2015-01-24 10:15:06.483512
+Create Date: 2015-04-25 10:58:49.862210
 """
 
 # revision identifiers, used by Alembic.
-revision = '32b7677509c'
+revision = '1366e00ae45'
 down_revision = None
-branch_labels = None
+branch_labels = ('pyramidcms',)
 depends_on = None
 
 from alembic import op
@@ -21,6 +21,14 @@ def upgrade():
         'group',
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column('name', sa.String(length=100), nullable=True),
+        sa.PrimaryKeyConstraint('id'),
+        sa.UniqueConstraint('name')
+    )
+    op.create_table(
+        'permission',
+        sa.Column('id', sa.Integer(), nullable=False),
+        sa.Column('name', sa.String(length=50), nullable=True),
+        sa.Column('description', sa.String(length=255), nullable=True),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('name')
     )
@@ -38,14 +46,6 @@ def upgrade():
         sa.Column('last_login', sa.DateTime(timezone=True), nullable=True),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('username')
-    )
-    op.create_table(
-        'permission',
-        sa.Column('id', sa.Integer(), nullable=False),
-        sa.Column('name', sa.String(length=50), nullable=True),
-        sa.Column('description', sa.String(length=255), nullable=True),
-        sa.PrimaryKeyConstraint('id'),
-        sa.UniqueConstraint('name')
     )
     op.create_table(
         'group_permission',
@@ -68,6 +68,6 @@ def upgrade():
 def downgrade():
     op.drop_table('user_group')
     op.drop_table('group_permission')
-    op.drop_table('permission')
     op.drop_table('user')
+    op.drop_table('permission')
     op.drop_table('group')
