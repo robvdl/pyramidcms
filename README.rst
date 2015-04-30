@@ -5,7 +5,7 @@ PyramidCMS
     :target: https://travis-ci.org/robvdl/pyramidcms
 
 .. image:: https://img.shields.io/coveralls/robvdl/pyramidcms.svg
-    :target: https://coveralls.io/r/coagulant/coveralls-python
+    :target: https://coveralls.io/r/robvdl/pyramidcms
 
 A content management system for Pyramid and Python 3.3+
 
