@@ -1,19 +1,29 @@
-import readline
-import rlcompleter
-from code import InteractiveConsole
+import os
+import shlex
+
+from subprocess import call
 
 from pyramidcms.cli import BaseCommand
 
 
 class Command(BaseCommand):
     """
-    Open an interactive python shell.
+    Management command to open pshell.
     """
 
+    def setup_args(self, parser):
+        # optional argument
+        parser.add_argument('ini_file', type=str, nargs='?',
+                            default='pyramidcms.ini',
+                            help='The .ini file argument, \
+                            defaults to pyramidcms.ini')
+
+    def load_pshell(self, ini_settings):
+        """
+        Loads the pshell command with an ini file configuration.
+        """
+        call(shlex.split('pshell ' + ini_settings))
+
     def handle(self, args):
-        context = globals().copy()
-        context.update(locals())
-        readline.set_completer(rlcompleter.Completer(context).complete)
-        readline.parse_and_bind('tab: complete')
-        shell = InteractiveConsole(context)
-        shell.interact()
+        path = os.path.dirname(__file__) + '/../../'
+        self.load_pshell(path + args.ini_file.lower())
