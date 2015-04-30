@@ -1,10 +1,10 @@
 language: python
+env:
+  - TOXENV=py33
+  - TOXENV=py34
 install:
   - pip install tox
 script:
   - tox
-env:
-  - TOXENV=py33
-  - TOXENV=py34
 after_success:
   - coveralls
