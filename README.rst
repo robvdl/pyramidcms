@@ -53,9 +53,9 @@ Now load the following "temporary" testing data::
 
     pcms loaddata development.ini
 
-Note that in the future the loadata command will load actual initial fixtures
-required for running pyramidcms, but for now it just inserts some test users,
-groups and permissions needed for development.
+Note that in the future the loadata command will load any JSON fixture file,
+given through a command line argument to the loaddata command. For now it just
+inserts some test data, some users, groups and permissions for development.
 
 When everything is installed, this will start the web application::
 
