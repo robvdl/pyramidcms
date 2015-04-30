@@ -1,4 +1,3 @@
-from pyramid.config import Configurator
 from pyramidcms.config import setup_configurator
 
 
