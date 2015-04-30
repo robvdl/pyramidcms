@@ -17,7 +17,7 @@ it is still a young project so we can aim high now and use the latest language
 features and builtin libraries, also by only targeting Python 3, the codebase
 is kept clean and tidy.
 
-Setting up a development environment, it must use Python 3::
+First create a development environment, it must use Python 3::
 
     mkvirtualenv pyramidcms -p /usr/bin/python3
     git clone git@github.com:robvdl/pyramidcms.git
@@ -25,33 +25,34 @@ Setting up a development environment, it must use Python 3::
     python setup.py develop
 
 Once pyramidcms is installed, you need to create a project to work with,
-first change to another directory, lets just go one directory up, then
-create a project::
+first change to another directory as you don't want to create the project
+inside the pyramidcms folder itself. Lets just go one directory up, then
+create a new project::
 
     cd ..
     pcreate -s pyramidcms foo
 
-When a project has been created, change to that directory and install it too::
+Once a project has been created, change to that directory and install it too::
 
     cd foo
     python setup.py develop
 
-Once that is done, run Alembic to create the database tables::
+When that is done, run Alembic to create the database tables::
 
     pcms migrate development.ini
 
 Note that this is exactly the same as running the following command,
-the "pcms migrate" command is just a wrapper::
+the "pcms migrate" command is just a handy wrapper command::
 
     alembic -c development.ini upgrade head
 
-Now load the following temporary testing data::
+Now load the following "temporary" testing data::
 
     pcms loaddata development.ini
 
-Note that in the future the loadata command will load initial fixtures
+Note that in the future the loadata command will load actual initial fixtures
 required for running pyramidcms, but for now it just inserts some test users,
-groups and permissions for needed development.
+groups and permissions needed for development.
 
 When everything is installed, this will start the web application::
 
@@ -65,7 +66,7 @@ requirements as well::
 
     pip install -r requirements/dev.txt
 
-Now just run nosetests to run the test suite::
+Now just run nosetests to run the tests::
 
     nosetests
 
