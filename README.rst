@@ -1,8 +1,11 @@
 PyramidCMS
 ==========
 
-.. image:: https://travis-ci.org/robvdl/pyramidcms.png?branch=master
-        :target: https://travis-ci.org/robvdl/pyramidcms
+.. image:: https://img.shields.io/travis/robvdl/pyramidcms.svg
+    :target: https://travis-ci.org/robvdl/pyramidcms
+
+.. image:: https://img.shields.io/coveralls/robvdl/pyramidcms.svg
+    :target: https://coveralls.io/r/coagulant/coveralls-python
 
 A content management system for Pyramid and Python 3.3+
 
