@@ -1,5 +1,6 @@
 import os
 import shlex
+import signal
 
 from subprocess import call
 
@@ -11,19 +12,9 @@ class Command(BaseCommand):
     Management command to open pshell.
     """
 
-    def setup_args(self, parser):
-        # optional argument
-        parser.add_argument('ini_file', type=str, nargs='?',
-                            default='pyramidcms.ini',
-                            help='The .ini file argument, \
-                            defaults to pyramidcms.ini')
-
-    def load_pshell(self, ini_settings):
-        """
-        Loads the pshell command with an ini file configuration.
-        """
-        call(shlex.split('pshell ' + ini_settings))
-
     def handle(self, args):
-        path = os.path.dirname(__file__) + '/../../'
-        self.load_pshell(path + args.ini_file.lower())
+        try:
+            call(shlex.split('pshell ' + self.settings['__file__']))
+        except KeyboardInterrupt:
+            # ctrl+c was pressed in the shell, we need to cleanup
+            os.kill(os.getpid(), signal.SIGTERM)
