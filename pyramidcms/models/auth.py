@@ -66,8 +66,6 @@ class User(Model):
     Based on the Django auth.User model, but with some differences:
 
     * is_staff has been dropped, the Group/Permission system is used instead.
-    * is_superuser has been renamed to just "superuser"
-    * is_active has been renamed just "active"
     * permissions are only stored on the Group to reduce complexity
 
     In Django you can also set permissions on the User directly, but
@@ -78,8 +76,8 @@ class User(Model):
     last_name = Column(String(50))
     email = Column(String(100))
     password = Column(String(100))
-    active = Column(Boolean, default=True)
-    superuser = Column(Boolean, default=False)
+    is_active = Column(Boolean, default=True)
+    is_superuser = Column(Boolean, default=False)
     date_joined = Column(DateTime(timezone=True), server_default=func.now())
     last_login = Column(DateTime(timezone=True))
     groups = relationship('Group', secondary=user_group_table)

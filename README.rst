@@ -13,49 +13,61 @@ We do welcome new contributors, but we are still in the early stages of the
 project, so it will take a while before it will even be remotely usable.
 
 We want to use only the latest version of Python (3.3 or higher), as this
-is still a young project so we can aim high and use the latest language
-features and core libraries.
+it is still a young project so we can aim high now and use the latest language
+features and builtin libraries, also by only targeting Python 3, the codebase
+is kept clean and tidy.
 
-Setting up a development environment::
+Setting up a development environment, it must use Python 3::
 
     mkvirtualenv pyramidcms -p /usr/bin/python3
     git clone git@github.com:robvdl/pyramidcms.git
     cd pyramidcms
-    python3 setup.py develop
+    python setup.py develop
 
-Once installed, this will create a local pyramidcms.ini file for development::
+Once pyramidcms is installed, you need to create a project to work with,
+first change to another directory, lets just go one directory up, then
+create a project::
 
-    pcms createconfig dev
+    cd ..
+    pcreate -s pyramidcms foo
+
+When a project has been created, change to that directory and install it too::
+
+    cd foo
+    python setup.py develop
 
 Once that is done, run Alembic to create the database tables::
 
-    alembic upgrade head
+    pcms migrate development.ini
 
-Now load the temporary test data::
+Note that this is exactly the same as running the following command,
+the "pcms migrate" command is just a wrapper::
 
-    pcms loaddata
+    alembic -c development.ini upgrade head
 
-Note that in the future the loadata command will load generic JSON fixtures,
-but for now it just inserts some test users, groups and permissions.
+Now load the following temporary testing data::
+
+    pcms loaddata development.ini
+
+Note that in the future the loadata command will load initial fixtures
+required for running pyramidcms, but for now it just inserts some test users,
+groups and permissions for needed development.
 
 When everything is installed, this will start the web application::
 
-    gunicorn --paste pyramidcms.ini
+    gunicorn --paste development.ini
 
 Running the tests
 -----------------
 
-Make sure you have installed the dev requirements::
+Switch back to the pyramidcms folder, make sure you have installed the dev
+requirements as well::
 
     pip install -r requirements/dev.txt
 
-Now just run nose::
+Now just run nosetests to run the test suite::
 
     nosetests
-
-Note that if nosetests doesn't work and it appears to be using Python 2
-instead of the virtualenv, this is something I ran into on Ubuntu 14.04
-as well, just deactivate the virtualenv and type "workon pyramidcms" again.
 
 You can also use Tox to run the tests against multiple Python versions::
 

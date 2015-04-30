@@ -60,7 +60,7 @@ class Command(BaseCommand):
         """
         user = User(username=superuser_details['username'],
                     email=superuser_details['email'],
-                    superuser=True)
+                    is_superuser=True)
         user.set_password(superuser_details['password'])
         with transaction.manager:
             user.save()

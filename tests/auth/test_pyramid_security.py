@@ -21,12 +21,12 @@ class TestPyramidSecurity(TestCase):
             mock_request.user.groups.append(mock_group)
 
         # start with a regular user (non-superuser)
-        mock_request.user.superuser = False
+        mock_request.user.is_superuser = False
         groups = security.groupfinder('test-user', mock_request)
         self.assertListEqual(groups, ['group:Group 1', 'group:Group 2'])
 
         # now try a superuser
-        mock_request.user.superuser = True
+        mock_request.user.is_superuser = True
         groups = security.groupfinder('test-superuser', mock_request)
         self.assertListEqual(groups, ['group:Group 1', 'group:Group 2', 'superuser'])
 

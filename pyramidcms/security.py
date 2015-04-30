@@ -17,9 +17,9 @@ def groupfinder(username, request):
     # groups start with "group:" in case a group is called "superuser"
     groups = ['group:' + group.name for group in request.user.groups]
 
-    # treat the superuser bool as a group, then in the RootFactory
+    # treat the is_superuser bool as a group, then in the RootFactory
     # ACL we give this ALL_PERMISSIONS.
-    if request.user.superuser:
+    if request.user.is_superuser:
         groups.append('superuser')
 
     return groups

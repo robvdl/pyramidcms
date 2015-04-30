@@ -22,7 +22,7 @@ class AuthViews(BaseLayout):
             password = form.password.data
             user = User.objects.get(username=username)
             if user and user.check_password(password):
-                if user.active:
+                if user.is_active:
                     headers = remember(self.request, username)
                     # refresh csrf_token on login for some extra security
                     self.session.new_csrf_token()

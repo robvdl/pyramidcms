@@ -42,7 +42,7 @@ class TestLoginView(TestCase):
         # mock the User model and instance
         user_instance_mock = Mock()
         user_instance_mock.check_password.return_value = True
-        user_instance_mock.active = False
+        user_instance_mock.is_active = False
         user_model_mock = Mock()
         user_model_mock.objects.get.return_value = user_instance_mock
 

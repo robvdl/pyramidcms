@@ -1,8 +1,8 @@
-pyramid==1.5.5
+pyramid==1.5.7
 pyramid_jinja2==2.4
 jinja2==2.7.3
 pyramid_tm==0.11
-SQLAlchemy==1.0.0
+SQLAlchemy==1.0.2
 transaction==1.4.3
 zope.sqlalchemy==0.7.6
 passlib==1.6.2

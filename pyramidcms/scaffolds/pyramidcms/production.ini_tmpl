@@ -27,7 +27,7 @@ session.cookie_secure = False
 [server:main]
 use = egg:gunicorn#main
 host = 0.0.0.0
-port = 6543
+port = 8000
 workers = 4
 
 ###
