@@ -12,7 +12,9 @@ class MockGroupApi(ApiBase):
     """
     A very simple mock API without any customisations.
     """
-    pass
+
+    def get_obj_list(self):
+        return []
 
 
 @resource(collection_path='/api/user', path='/api/user/{id}')
@@ -24,7 +26,7 @@ class MockUserApi(ApiBase):
     class Meta:
         limit = 10
 
-    def obj_list(self):
+    def get_obj_list(self):
         return range(1000)
 
 
@@ -64,6 +66,7 @@ class ApiBaseTest(TestCase):
             'limit': 20,
             'next': None,
             'page': 1,
+            'num_pages': 1,
             'previous': None,
             'total_count': 0,
         })
@@ -79,6 +82,7 @@ class ApiBaseTest(TestCase):
             'limit': 10,
             'next': '/api/user?page=3',
             'page': 2,
+            'num_pages': 100,
             'previous': '/api/user?page=1',
             'total_count': 1000,
         })

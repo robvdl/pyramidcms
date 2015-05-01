@@ -1,5 +1,7 @@
 from math import ceil
 
+from sqlalchemy.orm import Query
+
 from pyramidcms.core.exceptions import InvalidPage, PageNotAnInteger
 
 
@@ -7,7 +9,15 @@ class Paginator(object):
 
     def __init__(self, items, per_page):
         self.items = items
-        self.count = len(items)
+
+        # If items is a Query, len() won't work, so use items.count() instead.
+        # This will do a COUNT() query, which is fine for most tables, but
+        # can get expensive for larger tables, this can be dealt with later.
+        if type(items) == Query:
+            self.count = items.count()
+        else:
+            self.count = len(items)
+
         self.per_page = int(per_page)
         self.num_pages = int(ceil(self.count / self.per_page))
         self.page_range = range(1, self.num_pages + 1)
