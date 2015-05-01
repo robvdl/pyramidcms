@@ -18,8 +18,15 @@ class Paginator(object):
         else:
             self.count = len(items)
 
+        # If per_page is 0, we create a Paginator over the entire range
+        # and set the number of pages to 1. This is used by the API,
+        # when setting the limit to 0 it returns all rows.
         self.per_page = int(per_page)
-        self.num_pages = int(ceil(self.count / self.per_page))
+        if self.per_page == 0:
+            self.num_pages = 1
+        else:
+            self.num_pages = int(ceil(self.count / self.per_page))
+
         self.page_range = range(1, self.num_pages + 1)
 
     def page(self, page_number):
@@ -46,10 +53,16 @@ class Page(object):
         return self.number < self.paginator.num_pages
 
     def has_previous(self):
-        return self.offset >= self.paginator.per_page
+        if self.paginator.per_page == 0:
+            return self.offset >= self.paginator.count
+        else:
+            return self.offset >= self.paginator.per_page
 
     def has_other_pages(self):
-        return self.paginator.count > self.paginator.per_page
+        if self.paginator.per_page == 0:
+            return False
+        else:
+            return self.paginator.count > self.paginator.per_page
 
     def next_page_offset(self):
         if self.number < self.paginator.num_pages:
@@ -79,4 +92,7 @@ class Page(object):
         return self.offset + 1
 
     def end_index(self):
-        return self.offset + self.paginator.per_page
+        if self.paginator.per_page == 0:
+            return self.offset + self.paginator.count
+        else:
+            return self.offset + self.paginator.per_page

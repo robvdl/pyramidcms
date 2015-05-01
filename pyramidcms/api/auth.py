@@ -8,7 +8,7 @@ from pyramidcms.models import User, Group, Permission
 class UserApi(ModelApi):
     class Meta:
         model = User
-        limit = 2
+        limit = 0
 
 
 @resource(collection_path='/api/group', path='/api/group/{id}')
