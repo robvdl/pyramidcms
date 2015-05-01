@@ -1,5 +1,5 @@
 import re
-from datetime import datetime
+import datetime
 
 from sqlalchemy import Column, Integer, inspect, engine_from_config
 from sqlalchemy.orm import scoped_session, sessionmaker, class_mapper
@@ -205,7 +205,7 @@ class BaseModel(object):
                     fields_dict[field_name] = [model.id for model in field]
 
             # regular fields
-            elif type(field) == datetime:
+            elif type(field) == datetime.datetime or type(field) == datetime.date:
                 fields_dict[field_name] = field.isoformat()  # encode dates
             else:
                 fields_dict[field_name] = field
