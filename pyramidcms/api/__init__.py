@@ -132,7 +132,7 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
                 'limit': self.paginator.per_page,
                 'next': next_page_url,
                 'page': page.number,
-                'num_pages': self.paginator.num_pages,
+                'num_pages': self.paginator.num_pages or 1,  # at least 1 page
                 'previous': prev_page_url,
                 'total_count': self.paginator.count
             },
