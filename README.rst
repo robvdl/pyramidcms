@@ -3,9 +3,15 @@ PyramidCMS
 
 .. image:: https://img.shields.io/travis/robvdl/pyramidcms.svg
     :target: https://travis-ci.org/robvdl/pyramidcms
+    :alt: Travis CI
 
 .. image:: https://img.shields.io/coveralls/robvdl/pyramidcms.svg
     :target: https://coveralls.io/r/robvdl/pyramidcms
+    :alt: Coveralls
+
+.. image::  https://img.shields.io/codeclimate/github/robvdl/pyramidcms.svg
+    :target: https://codeclimate.com/github/robvdl/pyramidcms
+    :alt: Code Climate
 
 A content management system for Pyramid and Python 3.3+
 
