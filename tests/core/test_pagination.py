@@ -1,4 +1,7 @@
 import unittest
+from unittest.mock import Mock
+
+from sqlalchemy.orm import Query
 
 from pyramidcms.core.paginator import Paginator, Page
 from pyramidcms.core.exceptions import InvalidPage, PageNotAnInteger
@@ -196,3 +199,40 @@ class PaginationTest(unittest.TestCase):
         page = paginator.page(20)
         self.assertEqual(page.start_index(), 951)
         self.assertEqual(page.end_index(), 1000)
+
+    def test_no_page_size(self):
+        """
+        If no per_page is 0, it should create 1 page over the entire
+        data set and num_pages should be 1.
+        """
+        paginator = Paginator(range(1000), 0)
+        self.assertEqual(paginator.count, 1000)
+        self.assertEqual(paginator.per_page, 0)
+        self.assertEqual(paginator.num_pages, 1)
+        self.assertEqual(paginator.page_range, range(1, 2))
+
+        only_page = paginator.page(1)
+        self.assertFalse(only_page.has_next())
+        self.assertFalse(only_page.has_previous())
+        self.assertFalse(only_page.has_other_pages())
+        self.assertEqual(only_page.end_index(), 1000)
+
+    def test_paginator_empty_list(self):
+        """
+        A Paginator with an empty list should still get the number of pages
+        set to 1 rather than 0, the API uses this so the number of pages is
+        never actually 0, it's always a minimum of 1.
+        """
+        paginator = Paginator([], 10)
+        self.assertEqual(paginator.num_pages, 1)
+
+    def test_queryset_paginator(self):
+        """
+        When creating a Paginator for a SQL Alchemy Query, it should call
+        the .count() method on the queryset rather than using len(), which
+        will cause every row to be queried and that is not what we want.
+        """
+        mock_query = Mock(spec=Query)
+        mock_query.count.return_value = 10000
+        Paginator(mock_query, 10)
+        self.assertTrue(mock_query.count.called)

@@ -13,7 +13,7 @@ class Paginator(object):
         # If items is a Query, len() won't work, so use items.count() instead.
         # This will do a COUNT() query, which is fine for most tables, but
         # can get expensive for larger tables, this can be dealt with later.
-        if type(items) == Query:
+        if isinstance(items, Query):
             self.count = items.count()
         else:
             self.count = len(items)
@@ -25,7 +25,11 @@ class Paginator(object):
         if self.per_page == 0:
             self.num_pages = 1
         else:
+            # num_pages should never be 0, even when paginating an empty
+            # list, num_pages will be set to 1 rather than 0.
             self.num_pages = int(ceil(self.count / self.per_page))
+            if self.num_pages == 0:
+                self.num_pages = 1
 
         self.page_range = range(1, self.num_pages + 1)
 
