@@ -1,8 +1,11 @@
+import os
+
 from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.config import Configurator
 from pyramid.session import SignedCookieSessionFactory
 from pyramid.settings import asbool
+from pyramid.path import AssetResolver
 
 from pyramidcms.security import groupfinder, RootFactory
 
@@ -42,3 +45,21 @@ def setup_configurator(settings):
         root_factory=RootFactory,
         session_factory=session_factory
     )
+
+
+def resolve_asset_spec(spec):
+    """
+    If the path in spec is in the form module:subdir then resolve this
+    to the actual full path name, otherwise returns spec unmodified,
+    assuming this is a regular path already.
+
+    :param spec: asset specification path
+    :return: full resolved path name
+    """
+    if ':' in spec:
+        module, sub_directory = spec.split(':')
+        a = AssetResolver(module)
+        resolver = a.resolve(os.path.join(sub_directory, ''))
+        return resolver.abspath()
+    else:
+        return spec

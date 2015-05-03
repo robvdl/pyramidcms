@@ -1,4 +1,7 @@
+from pyramid.settings import aslist, asbool
+
 from .db import setup_db_connection
+from .config import resolve_asset_spec
 from .security import get_current_user
 
 
@@ -24,9 +27,18 @@ def includeme(config):
     # this makes request.user available as a lazy loaded property
     config.add_request_method(get_current_user, 'user', reify=True)
 
+    # reads a list of static dirs from the ini file
+    static_dirs = aslist(settings.get('static.dirs', 'pyramidcms:static'))
+    static_dirs = [resolve_asset_spec(path_or_spec) for path_or_spec in static_dirs]
+    config.registry.settings['static.dirs'] = static_dirs
+
+    # serving static files can be turned off in production
+    serve_static_files = asbool(settings.get('static.serve', False))
+    config.registry.settings['static.serve'] = serve_static_files
+
     # routes
     config.add_route('home', '/')
     config.add_route('login', '/login')
     config.add_route('logout', '/logout')
-    config.add_static_view('static', 'static', cache_max_age=3600)
+    config.add_route('static', '/static/*subpath')
     config.scan()
