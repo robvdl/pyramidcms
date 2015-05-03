@@ -4,7 +4,7 @@ from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.config import Configurator
 from pyramid.session import SignedCookieSessionFactory
-from pyramid.settings import asbool
+from pyramid.settings import asbool, aslist
 from pyramid.path import AssetResolver
 
 from pyramidcms.security import groupfinder, RootFactory
@@ -63,3 +63,16 @@ def resolve_asset_spec(spec):
         return resolver.abspath()
     else:
         return spec
+
+
+def get_static_dirs(settings):
+    """
+    Reads the setting "static.dirs" and return the list of directories
+    as a list.  If asset specs are used, these are resolved so that
+    the full paths are returned for each directory.
+
+    If there is no list of directories found under settings, it always
+    returns the location of the cms static folder.
+    """
+    static_dirs = aslist(settings.get('static.dirs', 'pyramidcms:static'))
+    return [resolve_asset_spec(path_or_spec) for path_or_spec in static_dirs]

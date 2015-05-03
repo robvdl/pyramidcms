@@ -1,7 +1,7 @@
-from pyramid.settings import aslist, asbool
+from pyramid.settings import asbool
 
 from .db import setup_db_connection
-from .config import resolve_asset_spec
+from .config import get_static_dirs
 from .security import get_current_user
 
 
@@ -28,9 +28,7 @@ def includeme(config):
     config.add_request_method(get_current_user, 'user', reify=True)
 
     # reads a list of static dirs from the ini file
-    static_dirs = aslist(settings.get('static.dirs', 'pyramidcms:static'))
-    static_dirs = [resolve_asset_spec(path_or_spec) for path_or_spec in static_dirs]
-    config.registry.settings['static.dirs'] = static_dirs
+    config.registry.settings['static.dirs'] = get_static_dirs(settings)
 
     # serving static files can be turned off in production
     serve_static_files = asbool(settings.get('static.serve', False))
