@@ -43,3 +43,10 @@ class TestPyramidSecurity(TestCase):
         # if username is None, the app should not crash
         mock_request.unauthenticated_userid = None
         security.get_current_user(mock_request)
+
+    def test_secret_key_generator(self):
+        """
+        Tests that secret_key_generator gives unique random keys.
+        """
+        random_keys = [security.secret_key_generator(40) for _ in range(1000)]
+        self.assertEqual(len(random_keys), len(set(random_keys)))
