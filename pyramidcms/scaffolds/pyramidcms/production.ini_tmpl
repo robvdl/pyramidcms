@@ -22,7 +22,7 @@ session.cookie_secure = False
 
 # static file configuration
 static.dirs = {{package}}:static pyramidcms:static
-static.collect_dir = %(here)s/static
+static.collect_dir = /var/www/{{package}}/static
 
 # useful for development, but in production this should be handled by nginx.
 static.serve = false
