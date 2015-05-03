@@ -1,4 +1,4 @@
-from unittest import TestCase, skip
+from unittest import TestCase
 from unittest.mock import Mock, patch
 
 from pyramidcms import security
@@ -44,7 +44,6 @@ class TestPyramidSecurity(TestCase):
         mock_request.unauthenticated_userid = None
         security.get_current_user(mock_request)
 
-    @skip('this fails on Python 3.3 missing "hex" codec')
     def test_secret_key_generator(self):
         """
         Tests that secret_key_generator gives unique random keys.

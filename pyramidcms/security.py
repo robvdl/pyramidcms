@@ -1,5 +1,5 @@
 import os
-import codecs
+import binascii
 
 from pyramid.security import Allow, ALL_PERMISSIONS
 
@@ -43,7 +43,7 @@ def secret_key_generator(length):
     """
     Generate a new secret key using length given.
     """
-    return codecs.encode(os.urandom(length), 'hex').decode('utf-8')
+    return binascii.hexlify(os.urandom(length)).decode('utf-8')
 
 
 class RootFactory(object):
