@@ -28,7 +28,7 @@ def static_view(request):
         if path:
             return FileResponse(path, request=request)
         else:
-            return HTTPNotFound()
+            raise HTTPNotFound()
     else:
         # in production static.serve should generally be turned off
-        return HTTPNotFound()
+        raise HTTPNotFound()
