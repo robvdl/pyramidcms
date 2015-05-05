@@ -30,14 +30,17 @@ class ModelManager(object):
     class, though this is completely optional.
     """
 
-    def __init__(self):
+    def __init__(self, model=None):
         """
         Default model manager constructor.
 
         This sets self.model to None as we don't know the model yet
         at this point, this gets filled in elsewhere.
+
+        It is also possible to pass a model to the constructor, at the
+        moment this is only used during tests, but this may change.
         """
-        self.model = None
+        self.model = model
 
     def all(self):
         """

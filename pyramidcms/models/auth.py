@@ -87,6 +87,8 @@ class User(Model):
             return self.first_name + ' ' + self.last_name
         elif self.first_name:
             return self.first_name
+        elif self.last_name:
+            return self.last_name
         else:
             return self.username
 
