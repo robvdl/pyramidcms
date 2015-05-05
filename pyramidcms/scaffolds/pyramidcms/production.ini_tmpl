@@ -16,7 +16,7 @@ pyramid.default_locale_name = en
 sqlalchemy.url = sqlite:///%(here)s/{{package}}.db
 
 # Keep this key safe, never store the secret key in GIT for production systems.
-session.secret = {{secret_key}}
+session.secret = {{random_string}}
 session.cookie_httponly = True
 session.cookie_secure = False
 

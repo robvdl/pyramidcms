@@ -1,7 +1,5 @@
 from pyramid.scaffolds import PyramidTemplate
 
-from pyramidcms.security import secret_key_generator
-
 
 class CMSProjectTemplate(PyramidTemplate):
     """
@@ -11,7 +9,3 @@ class CMSProjectTemplate(PyramidTemplate):
     """
     _template_dir = 'pyramidcms'
     summary = 'PyramidCMS project'
-
-    def pre(self, command, output_dir, vars):
-        vars['secret_key'] = secret_key_generator(40)
-        return super().pre(command, output_dir, vars)
