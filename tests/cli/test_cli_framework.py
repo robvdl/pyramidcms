@@ -63,6 +63,35 @@ class CliFrameworkTests(TestCase):
             with self.assertRaises(CommandError):
                 cli.load_command(app, command, settings_dict)
 
+    def test_show_pcms_help(self):
+        """
+        Test for "pcms help", mostly just for coverage.
+        """
+        parser = Mock()
+        cli.show_pcms_help(parser)
+        parser.print_help.assert_called_once_with()
+
+    @patch('pyramidcms.cli.load_command')
+    def test_show_command_help(self, mock_load_command):
+        """
+        Test for showing command help, command loading is mocked.
+        """
+        mock_command = Mock()
+        mock_load_command.return_value = mock_command
+        cli.show_command_help('pcms', 'mock_command')
+        mock_command.help.assert_called_once_with()
+
+    @patch('pyramidcms.cli.load_command')
+    def test_run_command(self, mock_load_command):
+        """
+        Test for running a command, command loading is mocked.
+        """
+        mock_command = Mock()
+        mock_load_command.return_value = mock_command
+        args = ['arg1', 'arg2', 'arg3']
+        cli.run_command('pcms', 'mock_command', args, {})
+        mock_command.run.assert_called_once_with(*args)
+
     @patch('glob.glob')
     def test_get_command_list(self, glob_mock):
         """
