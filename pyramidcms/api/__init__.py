@@ -2,6 +2,7 @@ from pyramid.decorator import reify
 from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound
 
 from pyramidcms.core.paginator import Paginator
+from pyramidcms.core.exceptions import InvalidPage
 
 
 class ApiMeta(object):
@@ -112,7 +113,7 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
         try:
             page_number = int(self.request.GET.get('page', 1))
             page = self.paginator.page(page_number)
-        except ValueError:
+        except (ValueError, InvalidPage):
             raise HTTPBadRequest('Invalid page number')
 
         if page.has_next():
