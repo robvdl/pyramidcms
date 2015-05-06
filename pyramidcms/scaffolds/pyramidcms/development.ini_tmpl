@@ -56,6 +56,14 @@ script_location = {{package}}:alembic
 version_locations = pyramidcms:alembic/versions {{package}}:alembic/versions
 
 ###
+# pshell configuration
+# http://docs.pylonsproject.org/projects/pyramid/en/latest/narr/commandline.html
+###
+m = pyramidcms.models
+session = pyramidcms.db.DBSession
+t = transaction
+
+###
 # logging configuration
 # http://docs.pylonsproject.org/projects/pyramid/en/{{pyramid_docs_branch}}/narr/logging.html
 ###
