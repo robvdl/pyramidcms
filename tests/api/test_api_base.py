@@ -1,4 +1,5 @@
 from unittest import TestCase
+from unittest.mock import Mock
 
 from pyramid import testing
 from pyramid.httpexceptions import HTTPBadRequest
@@ -78,10 +79,26 @@ class ApiBaseTest(TestCase):
             resource1.get_obj(1)
 
     def test_hydrate(self):
-        pass
+        """
+        Hydrate doesn't really do anything in the ApiBase class,
+        it just returns the original object as-is.
+        """
+        request = testing.DummyRequest()
+        resource1 = ApiBase(request)
+        test_obj = Mock()
+        hydrated = resource1.hydrate(test_obj)
+        self.assertEqual(test_obj, hydrated)
 
     def test_dehydrate(self):
-        pass
+        """
+        Dehydrate doesn't really do anything in the ApiBase class,
+        it just returns the original object as-is.
+        """
+        request = testing.DummyRequest()
+        resource1 = ApiBase(request)
+        test_obj = Mock()
+        dehydrated = resource1.dehydrate(test_obj)
+        self.assertEqual(test_obj, dehydrated)
 
     def test_get(self):
         """
