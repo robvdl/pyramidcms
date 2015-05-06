@@ -58,7 +58,7 @@ class Page(object):
 
     def has_previous(self):
         if self.paginator.per_page == 0:
-            return self.offset >= self.paginator.count
+            return False
         else:
             return self.offset >= self.paginator.per_page
 
