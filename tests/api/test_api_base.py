@@ -84,7 +84,13 @@ class ApiBaseTest(TestCase):
         pass
 
     def test_get(self):
-        pass
+        """
+        Tests the BaseApi.get() method.
+        """
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 10}
+        resource = NumberApi(request)
+        self.assertEqual(resource.get(), 10)
 
     def test_collection_get(self):
         """
