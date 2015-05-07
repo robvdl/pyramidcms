@@ -99,3 +99,14 @@ class TestLoginView(TestCase):
 
         # we can test for a specific flash message
         request.session.flash.assert_called_once_with('You are logged in', queue='success')
+
+    def test_logout_view(self):
+        request = testing.DummyRequest()
+        request.route_url = Mock(return_value='/test-redirect')
+        view = AuthViews(request)
+
+        with patch('pyramidcms.views.auth.forget') as forget_mock:
+            response = view.logout()
+            forget_mock.assert_called_once_with(request)
+
+        self.assertEqual(response.headers['Location'], '/test-redirect')
