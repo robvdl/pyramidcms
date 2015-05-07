@@ -1,10 +1,27 @@
 import os
 from unittest import TestCase
 
-from pyramidcms import config
+from pyramid.config import Configurator
+
+from pyramidcms.config import setup_configurator, resolve_asset_spec
 
 
 class ConfigTests(TestCase):
+
+    def test_setup_configurator(self):
+        """
+        A simple test for the :func:`pyramidcms.config.setup_configurator`
+        function, given some test settings, ensures we get a Configurator
+        object back.
+        """
+        settings = {
+            'session.secret': 'super-secret-key',
+            'session.cookie_httponly': True,
+            'session.cookie_secure': False,
+        }
+
+        config = setup_configurator(settings)
+        self.assertEqual(type(config), Configurator)
 
     def test_resolve_asset_spec(self):
         """
@@ -14,10 +31,10 @@ class ConfigTests(TestCase):
         """
         # actual spec gets resolved to a folder
         spec = 'pyramidcms:static'
-        folder = config.resolve_asset_spec(spec)
+        folder = resolve_asset_spec(spec)
         self.assertTrue(os.path.isdir(folder))
         self.assertNotEqual(spec, folder)
 
         # resolving the folder again results in no change
-        same_folder = config.resolve_asset_spec(folder)
+        same_folder = resolve_asset_spec(folder)
         self.assertEqual(folder, same_folder)
