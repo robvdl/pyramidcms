@@ -6,6 +6,6 @@ SQLAlchemy==1.0.3
 transaction==1.4.3
 zope.sqlalchemy==0.7.6
 passlib==1.6.2
-alembic==0.7.5.post2
+alembic==0.7.6
 WTForms==2.0.2
 cornice==1.0.0
