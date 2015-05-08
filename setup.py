@@ -38,12 +38,15 @@ setup(
     tests_require=DEV_REQUIRES,
     extras_require={'dev': DEV_REQUIRES},
     test_suite='nose.collector',
-    entry_points="""\
-    [paste.app_factory]
-    main = pyramidcms:main
-    [console_scripts]
-    pcms = pyramidcms.cli:main
-    [pyramid.scaffold]
-    pyramidcms=pyramidcms.scaffolds:CMSProjectTemplate
-    """,
+    entry_points={
+        'paste.app_factory': [
+            'main = pyramidcms:main',
+        ],
+        'console_scripts': [
+            'pcms = pyramidcms.cli:main',
+        ],
+        'pyramid.scaffold': [
+            'pyramidcms = pyramidcms.scaffolds:CMSProjectTemplate',
+        ]
+    }
 )
