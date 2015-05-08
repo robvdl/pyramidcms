@@ -3,9 +3,9 @@ from unittest import TestCase
 from pyramid import testing
 
 
-class TestApp(TestCase):
+class AppIntegrationTests(TestCase):
     """
-    Tests for including PyramidCMS into a application
+    Integration tests for including PyramidCMS into your application
     """
 
     settings = {
@@ -17,6 +17,9 @@ class TestApp(TestCase):
     }
 
     def setUp(self):
+        """
+        Sets up an application registry.
+        """
         self.config = testing.setUp(settings=self.settings)
 
     def test_include(self):
