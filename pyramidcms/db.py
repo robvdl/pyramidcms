@@ -1,10 +1,12 @@
 import re
 import datetime
+import transaction
 
 from sqlalchemy import Column, Integer, inspect, engine_from_config
 from sqlalchemy.orm import scoped_session, sessionmaker, class_mapper
 from sqlalchemy.orm.collections import InstrumentedList
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
+
 from zope.sqlalchemy import ZopeTransactionExtension
 
 # this regex is used to convert camelcase model names to table names
@@ -172,6 +174,16 @@ class BaseModel(object):
         """
         DBSession.add(self)
 
+    def commit(self):
+        """
+        Saves and commits current model instance to database.
+
+        This calls the model instances save() method and then runs
+        transaction.commit() on the model. Used only within the shell.
+        """
+        self.save()
+        transaction.commit()
+
     def serialize(self, full=False):
         """
         Returns this model instance as a dictionary.
@@ -200,7 +212,8 @@ class BaseModel(object):
             # many to many
             elif type(field) == InstrumentedList:
                 if full:
-                    fields_dict[field_name] = [model.serialize(full=True) for model in field]
+                    fields_dict[field_name] = [model.serialize(full=True)
+                                               for model in field]
                 else:
                     fields_dict[field_name] = [model.id for model in field]
 

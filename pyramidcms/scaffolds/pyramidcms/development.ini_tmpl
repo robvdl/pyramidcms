@@ -57,11 +57,10 @@ version_locations = pyramidcms:alembic/versions {{package}}:alembic/versions
 
 ###
 # pshell configuration
-# http://docs.pylonsproject.org/projects/pyramid/en/latest/narr/commandline.html
+# http://docs.pylonsproject.org/projects/pyramid/en/1.1-branch/narr/commandline.html#the-interactive-shell
 ###
-m = pyramidcms.models
-session = pyramidcms.db.DBSession
-t = transaction
+#
+models = pyramidcms.models
 
 ###
 # logging configuration
