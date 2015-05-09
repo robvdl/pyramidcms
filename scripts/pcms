@@ -1,0 +1,21 @@
+_pcms()
+{
+local cur prev prim sec
+
+cur="${COMP_WORDS[COMP_CWORD]}"
+prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+prim="shell loaddata dumpdata createsuperuser dbshell genkey collectstatic \
+     migrate help"
+sec=${prim%%?????} 
+
+case "${prev}" in
+    pcms)
+        COMPREPLY=( $(compgen -W "${prim}" ${cur}) )
+        ;;
+    help)
+        COMPREPLY=( $(compgen -W "${sec}" ${cur}) )
+	;;
+esac
+}
+complete -F _pcms pcms
