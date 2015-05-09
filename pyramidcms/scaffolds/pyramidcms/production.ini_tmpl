@@ -50,6 +50,13 @@ script_location = {{package}}:alembic
 version_locations = pyramidcms:alembic/versions {{package}}:alembic/versions
 
 ###
+# pshell configuration
+# http://docs.pylonsproject.org/projects/pyramid/en/1.1-branch/narr/commandline.html#the-interactive-shell
+###
+
+models = pyramidcms.models
+
+###
 # logging configuration
 # http://docs.pylonsproject.org/projects/pyramid/en/{{pyramid_docs_branch}}/narr/logging.html
 ###
