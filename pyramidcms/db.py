@@ -126,7 +126,7 @@ class BaseModel(object):
         return '<{}: {}>'.format(self.__class__.__name__, self)
 
     @property
-    def columns(self):
+    def db_columns(self):
         """
         Returns a list of database column names.
 
@@ -138,7 +138,7 @@ class BaseModel(object):
         return [col.name for col in class_mapper(self.__class__).mapped_table.c]
 
     @property
-    def fields(self):
+    def orm_fields(self):
         """
         Returns a list of model field names.
 
@@ -169,23 +169,20 @@ class BaseModel(object):
         """
         self.objects.filter(id=self.id).delete()
 
-    def save(self):
+    def save(self, commit=False):
         """
         Save current model instance to database.
 
         This just wraps the DBSession.add() function from SQLAlchemy.
+
+        :param commit: Will also commit transaction (required in pcms shell)
         """
         DBSession.add(self)
 
-    def commit(self):
-        """
-        Saves and commits current model instance to database.
-
-        This calls the model instances save() method and then runs
-        transaction.commit() on the model. Used only within the shell.
-        """
-        self.save()
-        transaction.commit()
+        # Manually commit, this is probably going to be a temporary thing.
+        # When in "pcms shell", after .save() we must manually commit.
+        if commit:
+            transaction.commit()
 
     def serialize(self, full=False):
         """
@@ -202,7 +199,7 @@ class BaseModel(object):
         :returns: model instance serialized into a dict.
         """
         fields_dict = {}
-        for field_name in self.fields:
+        for field_name in self.orm_fields:
             field = getattr(self, field_name)
 
             # foreign keys

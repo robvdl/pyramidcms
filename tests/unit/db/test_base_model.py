@@ -103,8 +103,8 @@ class BaseModelTests(TestCase):
         different field types, e.g. int, datetime, foreign key and m2m.
         """
         class MockModel(db.BaseModel):
-            fields = ['fk_field', 'm2m_field', 'int_field', 'str_field',
-                      'bool_field', 'null_field', 'date_field']
+            orm_fields = ['fk_field', 'm2m_field', 'int_field', 'str_field',
+                          'bool_field', 'null_field', 'date_field']
             fk_field = Mock(spec=db.Model, id=1, serialize=Mock(return_value={'id': 1}))
             m2m_field = InstrumentedList([Mock(id=2, serialize=Mock(return_value={'id': 2}))])
             int_field = 10
@@ -137,21 +137,21 @@ class BaseModelTests(TestCase):
         })
 
     @patch('pyramidcms.db.ModelManager', Mock())
-    def test_fields(self):
+    def test_orm_fields(self):
         """
-        Test the model.fields property, requires an actual model to test.
+        Test the model.orm_fields property, requires an actual model to test.
         """
         model = ApiModel()
 
-        # fields should include user but not user_id
-        self.assertListEqual(model.fields, ['user', 'id', 'token', 'description'])
+        # orm_fields should include user but not user_id
+        self.assertListEqual(model.orm_fields, ['user', 'id', 'token', 'description'])
 
     @patch('pyramidcms.db.ModelManager', Mock())
-    def test_columns(self):
+    def test_db_columns(self):
         """
-        Test the model.columns property, requires an actual model to test.
+        Test the model.db_columns property, requires an actual model to test.
         """
         model = ApiModel()
 
-        # columns should include user_id but not user
-        self.assertListEqual(model.columns, ['id', 'token', 'user_id', 'description'])
+        # db_columns should include user_id but not user
+        self.assertListEqual(model.db_columns, ['id', 'token', 'user_id', 'description'])
