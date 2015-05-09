@@ -95,6 +95,21 @@ class BaseModelTests(TestCase):
         mock_session.add.assert_called_once_with(model)
 
     @patch('pyramidcms.db.ModelManager', Mock())
+    @patch('pyramidcms.db.DBSession')
+    @patch('pyramidcms.db.transaction')
+    def test_commit_manually(self, mock_transaction, mock_session):
+        """
+        The save method should commit manually if the optional commit
+        argument is True.
+        """
+        model = db.BaseModel()
+        model.save(True)
+        mock_session.add.assert_called_once_with(model)
+
+        # transaction.commit() should have been called
+        mock_transaction.commit.assert_called_once_with()
+
+    @patch('pyramidcms.db.ModelManager', Mock())
     def test_serialize(self):
         """
         Unit test for the serialize() method on models, done using mocks.
