@@ -60,7 +60,8 @@ version_locations = pyramidcms:alembic/versions {{package}}:alembic/versions
 # http://docs.pylonsproject.org/projects/pyramid/en/1.1-branch/narr/commandline.html#the-interactive-shell
 ###
 #
-models = pyramidcms.models
+[pshell]
+cm = pyramidcms.models
 
 ###
 # logging configuration
