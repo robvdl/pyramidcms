@@ -1,5 +1,5 @@
 from unittest import TestCase
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from pyramidcms import cli
 
@@ -30,3 +30,29 @@ class BaseCommandTests(TestCase):
         command.parser = Mock()
         command.help()
         self.assertTrue(command.parser.print_help.called)
+
+    @patch('pyramidcms.cli.run_command')
+    def test_call_command(self, run_mock):
+        """
+        The call_command method can be used to call another command from
+        within your command, but without having to call another process
+        to do so. The settings dict should be passed to the command called.
+        """
+        command_args = ['arg1', 'arg2', 'arg3']
+        settings = {
+            'foo': 'test',
+            'bar': 123,
+            'baz': True
+        }
+
+        command = cli.BaseCommand('pcms', 'command1', settings)
+
+        # the command calls a sub-command
+        command.call_command('command2', command_args)
+
+        run_mock.assert_called_once_with('pcms', 'command2', command_args, settings)
+
+        # try without arguments
+        run_mock.reset_mock()
+        command.call_command('command2')
+        run_mock.assert_called_once_with('pcms', 'command2', [], settings)
