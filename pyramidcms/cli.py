@@ -34,6 +34,7 @@ class BaseCommand(object):
         :param command: the name of the command
         :param settings: Pyramid app settings or an empty dict if no ini file.
         """
+        self.app = app
         self.parser = argparse.ArgumentParser(prog='{} {} config_uri'.format(app, command))
         self.settings = settings
         self.setup_args(self.parser)
@@ -86,6 +87,18 @@ class BaseCommand(object):
         :param args: result from running parser.parse_args() from argparse
         """
         pass
+
+    def call_command(self, command, args=None):
+        """
+        Can be used to load and call another command from within
+        your command, but without having to start up another process.
+
+        :param command: The command to be loaded and run
+        :param args: List of arguments for the command
+        """
+        if args is None:
+            args = []
+        run_command(self.app, command, args, self.settings)
 
 
 def load_command(app, command, settings):
