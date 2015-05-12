@@ -1,9 +1,5 @@
 class BaseAuthorization(object):
 
-    def update_resource(self, resource):
-        print(resource)
-        self.resource = resource
-
     def read_list(self, obj_list):
         return True
 
