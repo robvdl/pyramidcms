@@ -1,8 +1,23 @@
+from cornice.resource import resource
 from pyramid.decorator import reify
-from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound
+from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound, HTTPForbidden
 
+from pyramidcms.api.authorization import BaseAuthorization
 from pyramidcms.core.paginator import Paginator
 from pyramidcms.core.exceptions import InvalidPage
+
+
+def cms_resource(resource_name):
+    """
+    A helper that returns a cornice @resource decorator, pre-populating
+    the collection_path, path, and name from the resource_name argument.
+
+    :param resource_name: Name of the resource
+    :return: @resource decorator
+    """
+    list_url = '/api/' + resource_name
+    detail_url = list_url + '/{id}'
+    return resource(name=resource_name, collection_path=list_url, path=detail_url)
 
 
 class ApiMeta(object):
@@ -23,6 +38,7 @@ class ApiMeta(object):
     max_limit = 1000
     filtering = {}
     ordering = []
+    authorization = BaseAuthorization()
 
     def __new__(cls, meta=None):
         overrides = {}
@@ -37,10 +53,10 @@ class ApiMeta(object):
         methods = overrides.get('allowed_methods',
                                 ['get', 'post', 'put', 'delete', 'patch'])
 
-        if overrides.get('list_allowed_methods', None) is None:
+        if overrides.get('list_allowed_methods') is None:
             overrides['list_allowed_methods'] = methods
 
-        if overrides.get('detail_allowed_methods', None) is None:
+        if overrides.get('detail_allowed_methods') is None:
             overrides['detail_allowed_methods'] = methods
 
         return object.__new__(type('ApiMeta', (cls,), overrides))
@@ -77,14 +93,22 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
     def __init__(self, request):
         self.request = request
 
+        # the authorization class needs a link back to the resource
+        self._meta.authorization.resource = self
+
     @reify
     def api_url(self):
         key = [s for s in self._services if s.startswith('collection_')][0]
         return self._services[key].path
 
     @reify
+    def resource_name(self):
+        key = [s for s in self._services if not s.startswith('collection_')][0]
+        return self._services[key].name
+
+    @reify
     def paginator(self):
-        return Paginator(self.get_obj_list(), self._meta.limit)
+        return self._meta.paginator_class(self.get_obj_list(), self._meta.limit)
 
     def get_obj_list(self):
         """
@@ -103,7 +127,11 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
         return obj
 
     def get(self):
-        return self.dehydrate(self.get_obj(self.request.matchdict['id']))
+        obj = self.get_obj(self.request.matchdict['id'])
+        if self._meta.authorization.read_detail(obj):
+            return self.dehydrate(obj)
+        else:
+            raise HTTPForbidden()
 
     def collection_get(self):
         """
