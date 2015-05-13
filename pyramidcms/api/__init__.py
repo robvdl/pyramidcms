@@ -2,7 +2,7 @@ from cornice.resource import resource
 from pyramid.decorator import reify
 from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound, HTTPForbidden
 
-from pyramidcms.api.authorization import BaseAuthorization
+from pyramidcms.api.authorization import ReadOnlyAuthorization
 from pyramidcms.core.paginator import Paginator
 from pyramidcms.core.exceptions import InvalidPage
 
@@ -38,7 +38,7 @@ class ApiMeta(object):
     max_limit = 1000
     filtering = {}
     ordering = []
-    authorization = BaseAuthorization()
+    authorization = ReadOnlyAuthorization()
 
     def __new__(cls, meta=None):
         overrides = {}

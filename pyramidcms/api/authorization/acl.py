@@ -1,7 +1,13 @@
-from . import BaseAuthorization
+from . import Authorization
 
 
-class ACLAuthorization(BaseAuthorization):
+class ACLAuthorization(Authorization):
+    """
+    Authorization class based on the Pyramid permission and ACL system.
+
+    Checks for the permissions read-{resource}, update-{resource},
+    create-{resource}, delete-{resource}.
+    """
 
     def permission(self, action):
         """
