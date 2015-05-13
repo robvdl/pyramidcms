@@ -1,3 +1,5 @@
+from pyramid.httpexceptions import HTTPForbidden
+
 from . import Authorization
 
 
@@ -22,7 +24,7 @@ class ACLAuthorization(Authorization):
         if self.resource.request.has_permission(self.permission('read')):
             return obj_list
         else:
-            return []
+            raise HTTPForbidden()
 
     def read_detail(self, obj):
         return self.resource.request.has_permission(self.permission('read'))
@@ -31,7 +33,7 @@ class ACLAuthorization(Authorization):
         if self.resource.request.has_permission(self.permission('create')):
             return obj_list
         else:
-            return []
+            raise HTTPForbidden()
 
     def create_detail(self, obj):
         return self.resource.request.has_permission(self.permission('create'))
@@ -40,7 +42,7 @@ class ACLAuthorization(Authorization):
         if self.resource.request.has_permission(self.permission('update')):
             return obj_list
         else:
-            return []
+            raise HTTPForbidden()
 
     def update_detail(self, obj):
         return self.resource.request.has_permission(self.permission('update'))
@@ -49,7 +51,7 @@ class ACLAuthorization(Authorization):
         if self.resource.request.has_permission(self.permission('delete')):
             return obj_list
         else:
-            return []
+            raise HTTPForbidden()
 
     def delete_detail(self, obj):
         return self.resource.request.has_permission(self.permission('delete'))
