@@ -108,7 +108,9 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
 
     @reify
     def paginator(self):
-        return self._meta.paginator_class(self.get_obj_list(), self._meta.limit)
+        # it is possible for the authorization class to filter the results
+        allowed_objects = self._meta.authorization.read_list(self.get_obj_list())
+        return self._meta.paginator_class(allowed_objects, self._meta.limit)
 
     def get_obj_list(self):
         """
@@ -140,40 +142,35 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
         The API collection_get method is used by Cornice, it returns a list
         of items for this API class.
         """
-        # we need a page first, so we can check access to the page items
         try:
             page_number = int(self.request.GET.get('page', 1))
             page = self.paginator.page(page_number)
         except (ValueError, InvalidPage):
             raise HTTPBadRequest('Invalid page number')
 
-        # now check if we have read access to the objects for this page
-        if self._meta.authorization.read_list(page.object_list):
-            if page.has_next():
-                next_page = page.next_page_number()
-                next_page_url = '{}?page={}'.format(self.api_url, next_page)
-            else:
-                next_page_url = None
-
-            if page.has_previous():
-                prev_page = page.previous_page_number()
-                prev_page_url = '{}?page={}'.format(self.api_url, prev_page)
-            else:
-                prev_page_url = None
-
-            return {
-                'meta': {
-                    'limit': self.paginator.per_page,
-                    'next': next_page_url,
-                    'page': page.number,
-                    'num_pages': self.paginator.num_pages,
-                    'previous': prev_page_url,
-                    'total_count': self.paginator.count
-                },
-                'items': [self.dehydrate(obj) for obj in page.object_list]
-            }
+        if page.has_next():
+            next_page = page.next_page_number()
+            next_page_url = '{}?page={}'.format(self.api_url, next_page)
         else:
-            raise HTTPForbidden()
+            next_page_url = None
+
+        if page.has_previous():
+            prev_page = page.previous_page_number()
+            prev_page_url = '{}?page={}'.format(self.api_url, prev_page)
+        else:
+            prev_page_url = None
+
+        return {
+            'meta': {
+                'limit': self.paginator.per_page,
+                'next': next_page_url,
+                'page': page.number,
+                'num_pages': self.paginator.num_pages,
+                'previous': prev_page_url,
+                'total_count': self.paginator.count
+            },
+            'items': [self.dehydrate(obj) for obj in page.object_list]
+        }
 
 
 class Api(ApiBase):

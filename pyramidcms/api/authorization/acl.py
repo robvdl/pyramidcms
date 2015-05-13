@@ -13,25 +13,37 @@ class ACLAuthorization(BaseAuthorization):
         return '{}-{}'.format(action, self.resource.resource_name)
 
     def read_list(self, obj_list):
-        return self.resource.request.has_permission(self.permission('read'))
+        if self.resource.request.has_permission(self.permission('read')):
+            return obj_list
+        else:
+            return []
 
     def read_detail(self, obj):
         return self.resource.request.has_permission(self.permission('read'))
 
     def create_list(self, obj_list):
-        return self.resource.request.has_permission(self.permission('create'))
+        if self.resource.request.has_permission(self.permission('create')):
+            return obj_list
+        else:
+            return []
 
     def create_detail(self, obj):
         return self.resource.request.has_permission(self.permission('create'))
 
     def update_list(self, obj_list):
-        return self.resource.request.has_permission(self.permission('update'))
+        if self.resource.request.has_permission(self.permission('update')):
+            return obj_list
+        else:
+            return []
 
     def update_detail(self, obj):
         return self.resource.request.has_permission(self.permission('update'))
 
     def delete_list(self, obj_list):
-        return self.resource.request.has_permission(self.permission('delete'))
+        if self.resource.request.has_permission(self.permission('delete')):
+            return obj_list
+        else:
+            return []
 
     def delete_detail(self, obj):
         return self.resource.request.has_permission(self.permission('delete'))
