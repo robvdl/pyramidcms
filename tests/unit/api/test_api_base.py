@@ -2,13 +2,12 @@ from unittest import TestCase
 from unittest.mock import Mock
 
 from pyramid import testing
-from pyramid.httpexceptions import HTTPBadRequest
-from cornice.resource import resource
+from pyramid.httpexceptions import HTTPBadRequest, HTTPForbidden
 
-from pyramidcms.api import ApiBase
+from pyramidcms.api import ApiBase, cms_resource
 
 
-@resource(collection_path='/api/simple', path='/api/simple/{id}')
+@cms_resource(resource_name='simple')
 class SimpleApi(ApiBase):
     """
     A very simple API, just an empty list without any customisations.
@@ -18,7 +17,7 @@ class SimpleApi(ApiBase):
         return []
 
 
-@resource(collection_path='/api/number', path='/api/number/{id}')
+@cms_resource(resource_name='number')
 class NumberApi(ApiBase):
     """
     Another mock API, this one has 1000 items and a custom limit.
@@ -50,10 +49,12 @@ class ApiBaseTest(TestCase):
 
         self.assertEqual(resource1.request, request)
         self.assertEqual(resource1.api_url, '/api/simple')
+        self.assertEqual(resource1.resource_name, 'simple')
         self.assertEqual(resource1._meta.limit, 20)
 
         self.assertEqual(resource2.request, request)
         self.assertEqual(resource2.api_url, '/api/number')
+        self.assertEqual(resource2.resource_name, 'number')
         self.assertEqual(resource2._meta.limit, 10)
 
     def test_get_obj_list(self):
@@ -108,6 +109,30 @@ class ApiBaseTest(TestCase):
         request.matchdict = {'id': 10}
         resource = NumberApi(request)
         self.assertEqual(resource.get(), 10)
+
+    def test_get__unauthorized(self):
+        """
+        Test BaseApi.get() when API Authorization returns unauthorized,
+        the get() method should raise HTTPForbidden.
+        """
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 10}
+        resource = NumberApi(request)
+
+        auth_mock = Mock()
+        resource._meta.authorization = auth_mock
+
+        # read_detail can return False for unauthorized
+        auth_mock.read_detail.return_value = False
+        with self.assertRaises(HTTPForbidden):
+            resource.get()
+
+        # read_detail can also raise HTTPForbidden itself
+        # reset return value first...
+        auth_mock.read_detail.return_value = Mock()
+        auth_mock.read_detail.side_effect = HTTPForbidden
+        with self.assertRaises(HTTPForbidden):
+            resource.get()
 
     def test_collection_get(self):
         """
