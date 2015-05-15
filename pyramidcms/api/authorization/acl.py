@@ -44,7 +44,6 @@ class ACLAuthorization(Authorization):
         else:
             raise HTTPForbidden()
 
-
     def update_list(self, obj_list):
         if self.resource.request.has_permission(self.permission('update')):
             return obj_list
@@ -57,7 +56,6 @@ class ACLAuthorization(Authorization):
         else:
             raise HTTPForbidden()
 
-
     def delete_list(self, obj_list):
         if self.resource.request.has_permission(self.permission('delete')):
             return obj_list
@@ -69,4 +67,3 @@ class ACLAuthorization(Authorization):
             return True
         else:
             raise HTTPForbidden()
-
