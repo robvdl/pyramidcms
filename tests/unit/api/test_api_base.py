@@ -44,18 +44,18 @@ class ApiBaseTest(TestCase):
         and instance of an API class.
         """
         request = testing.DummyRequest()
-        resource1 = SimpleApi(request)
-        resource2 = NumberApi(request)
 
-        self.assertEqual(resource1.request, request)
-        self.assertEqual(resource1.api_url, '/api/simple')
-        self.assertEqual(resource1.resource_name, 'simple')
-        self.assertEqual(resource1._meta.limit, 20)
+        api = SimpleApi(request)
+        self.assertEqual(api.request, request)
+        self.assertEqual(api.api_url, '/api/simple')
+        self.assertEqual(api.resource_name, 'simple')
+        self.assertEqual(api._meta.limit, 20)
 
-        self.assertEqual(resource2.request, request)
-        self.assertEqual(resource2.api_url, '/api/number')
-        self.assertEqual(resource2.resource_name, 'number')
-        self.assertEqual(resource2._meta.limit, 10)
+        api = NumberApi(request)
+        self.assertEqual(api.request, request)
+        self.assertEqual(api.api_url, '/api/number')
+        self.assertEqual(api.resource_name, 'number')
+        self.assertEqual(api._meta.limit, 10)
 
     def test_get_obj_list(self):
         """
@@ -64,9 +64,9 @@ class ApiBaseTest(TestCase):
         request = testing.DummyRequest()
 
         # create a direct instance of ApiBase (normally you wouldn't do this)
-        resource1 = ApiBase(request)
+        api = ApiBase(request)
         with self.assertRaises(NotImplementedError):
-            resource1.get_obj_list()
+            api.get_obj_list()
 
     def test_get_obj(self):
         """
@@ -75,9 +75,9 @@ class ApiBaseTest(TestCase):
         request = testing.DummyRequest()
 
         # create a direct instance of ApiBase
-        resource1 = ApiBase(request)
+        api = ApiBase(request)
         with self.assertRaises(NotImplementedError):
-            resource1.get_obj(1)
+            api.get_obj(1)
 
     def test_hydrate(self):
         """
@@ -85,9 +85,9 @@ class ApiBaseTest(TestCase):
         it just returns the original object as-is.
         """
         request = testing.DummyRequest()
-        resource1 = ApiBase(request)
+        api = ApiBase(request)
         test_obj = Mock()
-        hydrated = resource1.hydrate(test_obj)
+        hydrated = api.hydrate(test_obj)
         self.assertEqual(test_obj, hydrated)
 
     def test_dehydrate(self):
@@ -96,9 +96,9 @@ class ApiBaseTest(TestCase):
         it just returns the original object as-is.
         """
         request = testing.DummyRequest()
-        resource1 = ApiBase(request)
+        api = ApiBase(request)
         test_obj = Mock()
-        dehydrated = resource1.dehydrate(test_obj)
+        dehydrated = api.dehydrate(test_obj)
         self.assertEqual(test_obj, dehydrated)
 
     def test_get(self):
@@ -107,32 +107,32 @@ class ApiBaseTest(TestCase):
         """
         request = testing.DummyRequest()
         request.matchdict = {'id': 10}
-        resource = NumberApi(request)
-        self.assertEqual(resource.get(), 10)
+        api = NumberApi(request)
+        self.assertEqual(api.get(), 10)
 
-    def test_get__unauthorized(self):
+    def test_get__authorization(self):
         """
         Test BaseApi.get() when API Authorization returns unauthorized,
         the get() method should raise HTTPForbidden.
         """
         request = testing.DummyRequest()
         request.matchdict = {'id': 10}
-        resource = NumberApi(request)
+        api = NumberApi(request)
 
         auth_mock = Mock()
-        resource._meta.authorization = auth_mock
+        api._meta.authorization = auth_mock
 
         # read_detail can return False for unauthorized
         auth_mock.read_detail.return_value = False
         with self.assertRaises(HTTPForbidden):
-            resource.get()
+            api.get()
 
         # read_detail can also raise HTTPForbidden itself
         # reset return value first...
         auth_mock.read_detail.return_value = Mock()
         auth_mock.read_detail.side_effect = HTTPForbidden
         with self.assertRaises(HTTPForbidden):
-            resource.get()
+            api.get()
 
     def test_paginator_class(self):
         """
@@ -145,7 +145,7 @@ class ApiBaseTest(TestCase):
         mock_paginator = MagicMock()
         api._meta.paginator_class = mock_paginator
 
-        api.collection_get()
+        api.paginator.page(1)
         self.assertTrue(mock_paginator.called)
 
     def test_collection_get(self):
@@ -154,8 +154,8 @@ class ApiBaseTest(TestCase):
         """
         # simple api with an empty list
         request = testing.DummyRequest()
-        resource1 = SimpleApi(request)
-        data = resource1.collection_get()
+        api = SimpleApi(request)
+        data = api.collection_get()
         self.assertEqual(type(data), dict)
         self.assertListEqual(sorted(data.keys()), ['items', 'meta'])
         self.assertDictEqual(data['meta'], {
@@ -170,8 +170,8 @@ class ApiBaseTest(TestCase):
         # a slightly more complex api with some items and custom limit, also
         # tests the second page, so we can check the previous page property.
         request = testing.DummyRequest(params={'page': '2'})
-        resource2 = NumberApi(request)
-        data = resource2.collection_get()
+        api = NumberApi(request)
+        data = api.collection_get()
         self.assertEqual(type(data), dict)
         self.assertListEqual(sorted(data.keys()), ['items', 'meta'])
         self.assertDictEqual(data['meta'], {
@@ -185,6 +185,55 @@ class ApiBaseTest(TestCase):
 
         # test with an invalid page number, should raise a 400 bad request
         request = testing.DummyRequest(params={'page': 'invalid'})
-        resource3 = NumberApi(request)
+        api = NumberApi(request)
         with self.assertRaises(HTTPBadRequest):
-            resource3.collection_get()
+            api.collection_get()
+
+    def test_collection_get__authorization(self):
+        """
+        When collection_get is called, it uses the paginator @reify property
+        to get the list of objects to display for the current age.
+
+        The list of objects is filtered based on the authorization class
+        that is used, in the paginator @reify property method.
+
+        When this @reify property is called the first time, the filtering
+        is applied, so that we create a Paginator object based on the
+        filtered results, filtered by the authorization class in use.
+
+        Because the paginator is a @reify property, once it has already been
+        called, we have to create a new api object between each test, this is
+        normally not a problem on a per-request basis on an api resource when
+        the paginator shouldn't change.
+        """
+        request = testing.DummyRequest()
+
+        # filtered lists can be returned by a more advanced authorization class
+        expected_result = [10, 5, 2]
+        api = NumberApi(request)
+        auth_mock = MagicMock()
+        auth_mock.read_list.return_value = expected_result
+        api._meta.authorization = auth_mock
+
+        data = api.collection_get()
+        self.assertEqual(data['items'], expected_result)
+
+        # some authorization classes will return an empty list, this is OK
+        expected_result = []
+        api = NumberApi(request)
+        auth_mock = MagicMock()
+        auth_mock.read_list.return_value = expected_result
+        api._meta.authorization = auth_mock
+
+        data = api.collection_get()
+        self.assertEqual(data['items'], expected_result)
+
+        # other authorization classes will raise HTTPForbidden
+        expected_result = []
+        api = NumberApi(request)
+        auth_mock = MagicMock()
+        auth_mock.read_list.side_effect = HTTPForbidden
+        api._meta.authorization = auth_mock
+
+        with self.assertRaises(HTTPForbidden):
+            api.collection_get()
