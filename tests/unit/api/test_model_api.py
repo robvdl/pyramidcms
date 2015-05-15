@@ -3,12 +3,11 @@ from unittest.mock import Mock
 
 from pyramid import testing
 from pyramid.httpexceptions import HTTPNotFound
-from cornice.resource import resource
 
-from pyramidcms.api import ModelApi
+from pyramidcms.api import ModelApi, cms_resource
 
 
-@resource(collection_path='/api/model', path='/api/model/{id}')
+@cms_resource(resource_name='model')
 class MockModelApi(ModelApi):
     """
     A mock ModelApi that uses a Mock rather than an actual model.
