@@ -229,7 +229,6 @@ class ApiBaseTest(TestCase):
         self.assertEqual(data['items'], expected_result)
 
         # other authorization classes will raise HTTPForbidden
-        expected_result = []
         api = NumberApi(request)
         auth_mock = MagicMock()
         auth_mock.read_list.side_effect = HTTPForbidden
