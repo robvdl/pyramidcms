@@ -1,5 +1,5 @@
 from unittest import TestCase
-from unittest.mock import Mock
+from unittest.mock import Mock, MagicMock
 
 from pyramid import testing
 from pyramid.httpexceptions import HTTPBadRequest, HTTPForbidden
@@ -133,6 +133,20 @@ class ApiBaseTest(TestCase):
         auth_mock.read_detail.side_effect = HTTPForbidden
         with self.assertRaises(HTTPForbidden):
             resource.get()
+
+    def test_paginator_class(self):
+        """
+        This tests if the correct paginator class from the Meta
+        class was used, this can be tested using a MagicMock.
+        """
+        request = testing.DummyRequest()
+        api = NumberApi(request)
+
+        mock_paginator = MagicMock()
+        api._meta.paginator_class = mock_paginator
+
+        api.collection_get()
+        self.assertTrue(mock_paginator.called)
 
     def test_collection_get(self):
         """
