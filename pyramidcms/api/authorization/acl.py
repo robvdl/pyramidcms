@@ -1,6 +1,6 @@
 from pyramid.httpexceptions import HTTPForbidden
 
-from . import Authorization
+from .base import Authorization
 
 
 class ACLAuthorization(Authorization):

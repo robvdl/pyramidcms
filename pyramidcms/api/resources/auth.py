@@ -1,5 +1,6 @@
 from pyramidcms.api import ModelApi, cms_resource
-from pyramidcms.api.authorization.acl import ACLAuthorization
+from pyramidcms.api.authorization import ACLAuthorization
+from pyramidcms.api.authentication import SessionAuthentication
 from pyramidcms.models import User, Group, Permission
 
 
@@ -15,6 +16,7 @@ class UserApi(ModelApi):
 class GroupApi(ModelApi):
     class Meta:
         model = Group
+        authentication = SessionAuthentication()
 
 
 @cms_resource(resource_name='permission')

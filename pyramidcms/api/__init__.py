@@ -2,6 +2,7 @@ from cornice.resource import resource
 from pyramid.decorator import reify
 from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound, HTTPForbidden
 
+from pyramidcms.api.authentication import Authentication
 from pyramidcms.api.authorization import ReadOnlyAuthorization
 from pyramidcms.core.paginator import Paginator
 from pyramidcms.core.exceptions import InvalidPage
@@ -38,6 +39,7 @@ class ApiMeta(object):
     max_limit = 1000
     filtering = {}
     ordering = []
+    authentication = Authentication()
     authorization = ReadOnlyAuthorization()
 
     def __new__(cls, meta=None):
@@ -129,11 +131,14 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
         return obj
 
     def get(self):
-        obj = self.get_obj(self.request.matchdict['id'])
+        if self._meta.authentication.is_authenticated(self.request):
+            obj = self.get_obj(self.request.matchdict['id'])
 
-        # check if we have read access to this object
-        if self._meta.authorization.read_detail(obj):
-            return self.dehydrate(obj)
+            # check if we have read access to this object
+            if self._meta.authorization.read_detail(obj):
+                return self.dehydrate(obj)
+            else:
+                raise HTTPForbidden()
         else:
             raise HTTPForbidden()
 
@@ -142,35 +147,39 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
         The API collection_get method is used by Cornice, it returns a list
         of items for this API class.
         """
-        try:
-            page_number = int(self.request.GET.get('page', 1))
-            page = self.paginator.page(page_number)
-        except (ValueError, InvalidPage):
-            raise HTTPBadRequest('Invalid page number')
+        if self._meta.authentication.is_authenticated(self.request):
+            # authorization (filtering results) happens in paginator property
+            try:
+                page_number = int(self.request.GET.get('page', 1))
+                page = self.paginator.page(page_number)
+            except (ValueError, InvalidPage):
+                raise HTTPBadRequest('Invalid page number')
 
-        if page.has_next():
-            next_page = page.next_page_number()
-            next_page_url = '{}?page={}'.format(self.api_url, next_page)
+            if page.has_next():
+                next_page = page.next_page_number()
+                next_page_url = '{}?page={}'.format(self.api_url, next_page)
+            else:
+                next_page_url = None
+
+            if page.has_previous():
+                prev_page = page.previous_page_number()
+                prev_page_url = '{}?page={}'.format(self.api_url, prev_page)
+            else:
+                prev_page_url = None
+
+            return {
+                'meta': {
+                    'limit': self.paginator.per_page,
+                    'next': next_page_url,
+                    'page': page.number,
+                    'num_pages': self.paginator.num_pages,
+                    'previous': prev_page_url,
+                    'total_count': self.paginator.count
+                },
+                'items': [self.dehydrate(obj) for obj in page.object_list]
+            }
         else:
-            next_page_url = None
-
-        if page.has_previous():
-            prev_page = page.previous_page_number()
-            prev_page_url = '{}?page={}'.format(self.api_url, prev_page)
-        else:
-            prev_page_url = None
-
-        return {
-            'meta': {
-                'limit': self.paginator.per_page,
-                'next': next_page_url,
-                'page': page.number,
-                'num_pages': self.paginator.num_pages,
-                'previous': prev_page_url,
-                'total_count': self.paginator.count
-            },
-            'items': [self.dehydrate(obj) for obj in page.object_list]
-        }
+            raise HTTPForbidden()
 
 
 class Api(ApiBase):
