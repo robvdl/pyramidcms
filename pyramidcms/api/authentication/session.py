@@ -9,7 +9,8 @@ class SessionAuthentication(Authentication):
     """
 
     def is_authenticated(self, request):
-        return request.unauthenticated_userid is not None
+        return request.user is not None
 
     def get_identifier(self, request):
-        return request.unauthenticated_userid
+        if request.user:
+            return request.user.username
