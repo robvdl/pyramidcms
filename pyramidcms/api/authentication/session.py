@@ -12,4 +12,4 @@ class SessionAuthentication(Authentication):
         return request.unauthenticated_userid is not None
 
     def get_identifier(self, request):
-        return request.user.username
+        return request.unauthenticated_userid
