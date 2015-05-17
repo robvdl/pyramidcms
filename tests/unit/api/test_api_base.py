@@ -279,3 +279,24 @@ class ApiBaseTest(TestCase):
 
         with self.assertRaises(HTTPForbidden):
             api.collection_get()
+
+    def test_collection_get__authentication(self):
+        """
+        Tests the collection_get method when the authentication class
+        returns an unauthenticated result, should raise HTTPForbidden.
+        """
+        request = testing.DummyRequest()
+        api = NumberApi(request)
+        auth_mock = MagicMock()
+        api._meta.authentication = auth_mock
+
+        # authentication usually returns False
+        auth_mock.is_authenticated.return_value = False
+        with self.assertRaises(HTTPForbidden):
+            api.collection_get()
+
+        # authentication could also raise HTTPForbidden directly
+        auth_mock.is_authenticated.return_value = Mock()
+        auth_mock.is_authenticated.side_effect = HTTPForbidden
+        with self.assertRaises(HTTPForbidden):
+            api.collection_get()
