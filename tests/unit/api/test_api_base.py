@@ -134,6 +134,29 @@ class ApiBaseTest(TestCase):
         with self.assertRaises(HTTPForbidden):
             api.get()
 
+    def test_get__authentication(self):
+        """
+        Test BaseApi.get() when API Authentication class returns unauthorized,
+        the get() method should raise HTTPForbidden.
+        """
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 10}
+        api = NumberApi(request)
+
+        auth_mock = Mock()
+        api._meta.authentication = auth_mock
+
+        # is_authenticated returns False
+        auth_mock.is_authenticated.return_value = False
+        with self.assertRaises(HTTPForbidden):
+            api.get()
+
+        # is_authenticated raises HTTPForbidden
+        auth_mock.is_authenticated.return_value = Mock()
+        auth_mock.is_authenticated.side_effect = HTTPForbidden
+        with self.assertRaises(HTTPForbidden):
+            api.get()
+
     def test_paginator_class(self):
         """
         This tests if the correct paginator class from the Meta
