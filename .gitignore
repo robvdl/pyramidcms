@@ -7,10 +7,7 @@ build
 
 # Editor and IDE related
 .idea
-.ropeproject/
-
-# Sphinx build directory
-doc/build
+.ropeproject
 
 # Testing
 .tox

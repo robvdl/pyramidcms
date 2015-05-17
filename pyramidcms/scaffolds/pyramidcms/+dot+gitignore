@@ -7,7 +7,7 @@ build
 
 # Editor and IDE related
 .idea
-.ropeproject/
+.ropeproject
 
 # Testing
 .tox
