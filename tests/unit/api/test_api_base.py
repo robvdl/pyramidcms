@@ -38,6 +38,26 @@ class ApiBaseTest(TestCase):
     Tests the API base class by registering some actual mock APIs.
     """
 
+    def setUp(self):
+        """
+        Some of the tests alter properties on the API metaclass, which
+        affects other tests after it.
+
+        By creating a backup of these properties before each test in the
+        setUp() method, they can be restored after the test in tearDown().
+        """
+        self.backup_authorization = NumberApi._meta.authorization
+        self.backup_authentication = NumberApi._meta.authentication
+        self.backup_paginator = NumberApi._meta.paginator_class
+
+    def tearDown(self):
+        """
+        Restore backed up API metaclass properties.
+        """
+        NumberApi._meta.authorization = self.backup_authorization
+        NumberApi._meta.authentication = self.backup_authentication
+        NumberApi._meta.paginator_class = self.backup_paginator
+
     def test_constructor(self):
         """
         Tests that the api_url property is generated properly when creating
