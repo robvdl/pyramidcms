@@ -9,9 +9,6 @@ build
 .idea
 .ropeproject/
 
-# Sphinx build directory
-doc/build
-
 # Testing
 .tox
 .coverage
