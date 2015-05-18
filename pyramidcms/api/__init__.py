@@ -110,9 +110,14 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
 
     @reify
     def paginator(self):
-        # it is possible for the authorization class to filter the results
-        allowed_objects = self._meta.authorization.read_list(self.get_obj_list())
-        return self._meta.paginator_class(allowed_objects, self._meta.limit)
+        return self._meta.paginator_class(self.get_allowed_objects(), self._meta.limit)
+
+    def get_allowed_objects(self):
+        """
+        This method filters the objects coming from the :meth:`get_obj_list()`
+        method using the authorization class read_list() method.
+        """
+        return self._meta.authorization.read_list(self.get_obj_list())
 
     def get_obj_list(self):
         """
