@@ -52,7 +52,6 @@ class RootFactory(object):
 
     It is also an entry point for traversal-based applications.
     """
-    __acl__ = [(Allow, 'superuser', ALL_PERMISSIONS)]
 
     def __init__(self, request):
         """
@@ -68,6 +67,9 @@ class RootFactory(object):
         """
         self.request = request
 
+        # start with a simple list where superusers are allowed all permissions
+        self.__acl__ = [(Allow, 'superuser', ALL_PERMISSIONS)]
+
         # add ACLs from database based on a join between Group and Permission
-        acl = [(Allow, 'group:' + grp.name, perm.name) for perm, grp in Permission.objects.list_by_group()]
-        self.__acl__.extend(acl)
+        db_acl = [(Allow, 'group:' + grp.name, perm.name) for perm, grp in Permission.objects.list_by_group()]
+        self.__acl__.extend(db_acl)

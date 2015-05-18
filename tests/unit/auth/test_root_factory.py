@@ -30,8 +30,8 @@ class RootFactoryTests(TestCase):
 
         # Call the RootFactory constructor, which is the method under test.
         # The list of ACLs is then updated on RootFactory.__acl__
-        security.RootFactory(mock_request)
-        acl = security.RootFactory.__acl__
+        root_factory = security.RootFactory(mock_request)
+        acl = root_factory.__acl__
 
         # The first ACL line gives superusers full access
         self.assertEqual(acl[0], (Allow, 'superuser', ALL_PERMISSIONS))
