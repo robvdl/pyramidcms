@@ -39,7 +39,7 @@ class Command(BaseCommand):
 
     def load_dbms_shell(self, connection):
         is_mysql = connection['dbms'].startswith('mysql')
-        is_postgresql = connection['dbms'].startswith('postgresql')
+        is_postgresql = connection['dbms'].startswith('postgres')
         is_sqlite = connection['dbms'].startswith('sqlite')
 
         if is_mysql:
