@@ -95,9 +95,6 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
     def __init__(self, request):
         self.request = request
 
-        # the authorization class needs a link back to the resource
-        self._meta.authorization.resource = self
-
     @reify
     def api_url(self):
         key = [s for s in self._services if s.startswith('collection_')][0]
@@ -117,7 +114,7 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
         This method filters the objects coming from the :meth:`get_obj_list()`
         method using the authorization class read_list() method.
         """
-        return self._meta.authorization.read_list(self.get_obj_list())
+        return self._meta.authorization.read_list(self.get_obj_list(), self)
 
     def get_obj_list(self):
         """
@@ -140,7 +137,7 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
             obj = self.get_obj(self.request.matchdict['id'])
 
             # check if we have read access to this object
-            if self._meta.authorization.read_detail(obj):
+            if self._meta.authorization.read_detail(obj, self):
                 return self.dehydrate(obj)
             else:
                 raise HTTPForbidden()

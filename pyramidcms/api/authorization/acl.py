@@ -11,59 +11,60 @@ class ACLAuthorization(Authorization):
     create-{resource}, delete-{resource}.
     """
 
-    def permission(self, action):
+    def permission(self, action, resource):
         """
         Returns a permission name based on the resource name and the action.
 
         :param action: can be 'read', 'create', 'update', or 'delete'
+        :param resource: api resource inheriting :class:`pyramidcms.api.ApiBase`
         :return: resource name plus and action, separated by a hyphen.
         """
-        return '{}-{}'.format(action, self.resource.resource_name)
+        return '{}-{}'.format(action, resource.resource_name)
 
-    def read_list(self, obj_list):
-        if self.resource.request.has_permission(self.permission('read')):
+    def read_list(self, obj_list, resource):
+        if resource.request.has_permission(self.permission('read', resource)):
             return obj_list
         else:
             raise HTTPForbidden()
 
-    def read_detail(self, obj):
-        if self.resource.request.has_permission(self.permission('read')):
+    def read_detail(self, obj, resource):
+        if resource.request.has_permission(self.permission('read', resource)):
             return True
         else:
             raise HTTPForbidden()
 
-    def create_list(self, obj_list):
-        if self.resource.request.has_permission(self.permission('create')):
+    def create_list(self, obj_list, resource):
+        if resource.request.has_permission(self.permission('create', resource)):
             return obj_list
         else:
             raise HTTPForbidden()
 
-    def create_detail(self, obj):
-        if self.resource.request.has_permission(self.permission('create')):
+    def create_detail(self, obj, resource):
+        if resource.request.has_permission(self.permission('create', resource)):
             return True
         else:
             raise HTTPForbidden()
 
-    def update_list(self, obj_list):
-        if self.resource.request.has_permission(self.permission('update')):
+    def update_list(self, obj_list, resource):
+        if resource.request.has_permission(self.permission('update', resource)):
             return obj_list
         else:
             raise HTTPForbidden()
 
-    def update_detail(self, obj):
-        if self.resource.request.has_permission(self.permission('update')):
+    def update_detail(self, obj, resource):
+        if resource.request.has_permission(self.permission('update', resource)):
             return True
         else:
             raise HTTPForbidden()
 
-    def delete_list(self, obj_list):
-        if self.resource.request.has_permission(self.permission('delete')):
+    def delete_list(self, obj_list, resource):
+        if resource.request.has_permission(self.permission('delete', resource)):
             return obj_list
         else:
             raise HTTPForbidden()
 
-    def delete_detail(self, obj):
-        if self.resource.request.has_permission(self.permission('delete')):
+    def delete_detail(self, obj, resource):
+        if resource.request.has_permission(self.permission('delete', resource)):
             return True
         else:
             raise HTTPForbidden()

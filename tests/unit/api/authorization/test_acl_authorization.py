@@ -13,115 +13,100 @@ class ACLAuthorizationTests(TestCase):
 
     def setUp(self):
         self.auth = ACLAuthorization()
+        self.resource = Mock(resource_name='test')
 
     def test_create_list(self):
-        mock_request = Mock()
         mock_list = [1, 2, 3]
-        self.auth.resource = Mock(request=mock_request)
 
         # has_permission returns True
-        mock_request.has_permission.return_value = True
-        self.assertListEqual(self.auth.create_list(mock_list), mock_list)
+        self.resource.request.has_permission.return_value = True
+        self.assertListEqual(self.auth.create_list(mock_list, self.resource), mock_list)
 
         # has_permission returns False
-        mock_request.has_permission.return_value = False
+        self.resource.request.has_permission.return_value = False
         with self.assertRaises(HTTPForbidden):
-            self.auth.create_list(mock_list)
+            self.auth.create_list(mock_list, self.resource)
 
     def test_create_detail(self):
-        mock_request = Mock()
         mock_obj = Mock()
-        self.auth.resource = Mock(request=mock_request)
 
         # has_permission returns True
-        mock_request.has_permission.return_value = True
-        self.assertTrue(self.auth.create_detail(mock_obj))
+        self.resource.request.has_permission.return_value = True
+        self.assertTrue(self.auth.create_detail(mock_obj, self.resource))
 
         # has_permission returns False
-        mock_request.has_permission.return_value = False
+        self.resource.request.has_permission.return_value = False
         with self.assertRaises(HTTPForbidden):
-            self.auth.create_detail(mock_obj)
+            self.auth.create_detail(mock_obj, self.resource)
 
     def test_read_list(self):
-        mock_request = Mock()
         mock_list = [1, 2, 3]
-        self.auth.resource = Mock(request=mock_request)
 
         # has_permission returns True
-        mock_request.has_permission.return_value = True
-        self.assertListEqual(self.auth.read_list(mock_list), mock_list)
+        self.resource.request.has_permission.return_value = True
+        self.assertListEqual(self.auth.read_list(mock_list, self.resource), mock_list)
 
         # has_permission returns False
-        mock_request.has_permission.return_value = False
+        self.resource.request.has_permission.return_value = False
         with self.assertRaises(HTTPForbidden):
-            self.auth.read_list(mock_list)
+            self.auth.read_list(mock_list, self.resource)
 
     def test_read_detail(self):
-        mock_request = Mock()
         mock_obj = Mock()
-        self.auth.resource = Mock(request=mock_request)
 
         # has_permission returns True
-        mock_request.has_permission.return_value = True
-        self.assertTrue(self.auth.read_detail(mock_obj))
+        self.resource.request.has_permission.return_value = True
+        self.assertTrue(self.auth.read_detail(mock_obj, self.resource))
 
         # has_permission returns False
-        mock_request.has_permission.return_value = False
+        self.resource.request.has_permission.return_value = False
         with self.assertRaises(HTTPForbidden):
-            self.auth.read_detail(mock_obj)
+            self.auth.read_detail(mock_obj, self.resource)
 
     def test_update_list(self):
-        mock_request = Mock()
         mock_list = [1, 2, 3]
-        self.auth.resource = Mock(request=mock_request)
 
         # has_permission returns True
-        mock_request.has_permission.return_value = True
-        self.assertListEqual(self.auth.update_list(mock_list), mock_list)
+        self.resource.request.has_permission.return_value = True
+        self.assertListEqual(self.auth.update_list(mock_list, self.resource), mock_list)
 
         # has_permission returns False
-        mock_request.has_permission.return_value = False
+        self.resource.request.has_permission.return_value = False
         with self.assertRaises(HTTPForbidden):
-            self.auth.update_list(mock_list)
+            self.auth.update_list(mock_list, self.resource)
 
     def test_update_detail(self):
-        mock_request = Mock()
         mock_obj = Mock()
-        self.auth.resource = Mock(request=mock_request)
 
         # has_permission returns True
-        mock_request.has_permission.return_value = True
-        self.assertTrue(self.auth.update_detail(mock_obj))
+        self.resource.request.has_permission.return_value = True
+        self.assertTrue(self.auth.update_detail(mock_obj, self.resource))
 
         # has_permission returns False
-        mock_request.has_permission.return_value = False
+        self.resource.request.has_permission.return_value = False
         with self.assertRaises(HTTPForbidden):
-            self.auth.update_detail(mock_obj)
+            self.auth.update_detail(mock_obj, self.resource)
 
     def test_delete_list(self):
-        mock_request = Mock()
         mock_list = [1, 2, 3]
-        self.auth.resource = Mock(request=mock_request)
 
         # has_permission returns True
-        mock_request.has_permission.return_value = True
-        self.assertListEqual(self.auth.delete_list(mock_list), mock_list)
+        self.resource.request.has_permission.return_value = True
+        self.assertListEqual(self.auth.delete_list(mock_list, self.resource), mock_list)
 
         # has_permission returns False
-        mock_request.has_permission.return_value = False
+        self.resource.request.has_permission.return_value = False
         with self.assertRaises(HTTPForbidden):
-            self.auth.delete_list(mock_list)
+            self.auth.delete_list(mock_list, self.resource)
 
     def test_delete_detail(self):
-        mock_request = Mock()
         mock_obj = Mock()
-        self.auth.resource = Mock(request=mock_request)
 
         # has_permission returns True
-        mock_request.has_permission.return_value = True
-        self.assertTrue(self.auth.delete_detail(mock_obj))
+        self.resource.request.has_permission.return_value = True
+        self.assertTrue(self.auth.delete_detail(mock_obj, self.resource))
 
         # has_permission returns False
-        mock_request.has_permission.return_value = False
+        self.resource.request.has_permission.return_value = False
         with self.assertRaises(HTTPForbidden):
-            self.auth.delete_detail(mock_obj)
+            self.auth.delete_detail(mock_obj, self.resource)
