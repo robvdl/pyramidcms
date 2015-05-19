@@ -8,6 +8,17 @@ from pyramidcms.core.paginator import Paginator
 from pyramidcms.core.exceptions import InvalidPage
 
 
+def get_global_acls(request):
+    """
+    Returns the global list of ACLs, already used by Pyramid views,
+    by constructing the RootFactory object and returning __acl__.
+
+    :param request: Pyramid request object
+    :return: List of ACLs
+    """
+    return RootFactory(request).__acl__
+
+
 def cms_resource(resource_name):
     """
     A helper that returns a cornice @resource decorator, pre-populating
@@ -18,7 +29,12 @@ def cms_resource(resource_name):
     """
     list_url = '/api/' + resource_name
     detail_url = list_url + '/{id}'
-    return resource(name=resource_name, collection_path=list_url, path=detail_url)
+    return resource(
+        name=resource_name,
+        collection_path=list_url,
+        path=detail_url
+        acl=get_global_acls
+    )
 
 
 class ApiMeta(object):
