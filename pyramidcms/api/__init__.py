@@ -205,10 +205,13 @@ class Api(ApiBase):
     """
     The regular ``Api`` class is for building API resources for non-model
     data, it is similar to the regular Resource class in TastyPie.
-
-    At the moment, this class is still to be implemented.
     """
-    pass
+
+    def get_obj_list(self):
+        return []
+
+    def get_obj(self, obj_id):
+        return {}
 
 
 class ModelApi(ApiBase):
