@@ -151,7 +151,7 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
 
     def get(self):
         if self._meta.authentication.is_authenticated(self.request):
-            obj = self.get_obj(self.request.matchdict['id'])
+            obj = self.get_obj(int(self.request.matchdict['id']))
 
             # check if we have read access to this object
             if self._meta.authorization.read_detail(obj, self):
