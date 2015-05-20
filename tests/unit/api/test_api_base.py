@@ -1,10 +1,10 @@
 from unittest import TestCase
-from unittest.mock import Mock, MagicMock
+from unittest.mock import patch, Mock, MagicMock
 
 from pyramid import testing
 from pyramid.httpexceptions import HTTPBadRequest, HTTPForbidden
 
-from pyramidcms.api import ApiBase, cms_resource
+from pyramidcms.api import ApiBase, cms_resource, get_global_acls
 
 
 @cms_resource(resource_name='simple')
@@ -57,6 +57,19 @@ class ApiBaseTest(TestCase):
         NumberApi._meta.authorization = self.backup_authorization
         NumberApi._meta.authentication = self.backup_authentication
         NumberApi._meta.paginator_class = self.backup_paginator
+
+    @patch('pyramidcms.api.RootFactory')
+    def test_get_global_acls(self, mock_root_factory):
+        """
+        Tests that @cms_resource gets the global list of ACLs from the
+        RootFactory class.
+        """
+        request = testing.DummyRequest()
+
+        # just a simple list will suffice here
+        mock_acls = [1, 2, 3]
+        mock_root_factory.return_value = Mock(__acl__=mock_acls)
+        self.assertListEqual(get_global_acls(request), mock_acls)
 
     def test_constructor(self):
         """
