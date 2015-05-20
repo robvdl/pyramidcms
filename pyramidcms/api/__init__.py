@@ -32,7 +32,7 @@ def cms_resource(resource_name):
     return resource(
         name=resource_name,
         collection_path=list_url,
-        path=detail_url
+        path=detail_url,
         acl=get_global_acls
     )
 
