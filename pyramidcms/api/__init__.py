@@ -29,7 +29,7 @@ def cms_resource(resource_name):
     :return: @resource decorator
     """
     list_url = '/api/' + resource_name
-    detail_url = list_url + '/{id}'
+    detail_url = list_url + '/{id:\d+}'
     return resource(
         name=resource_name,
         collection_path=list_url,
