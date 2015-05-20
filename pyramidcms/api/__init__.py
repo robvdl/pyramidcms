@@ -6,6 +6,7 @@ from pyramidcms.api.authentication import Authentication
 from pyramidcms.api.authorization import ReadOnlyAuthorization
 from pyramidcms.core.paginator import Paginator
 from pyramidcms.core.exceptions import InvalidPage
+from pyramidcms.security import RootFactory
 
 
 def get_global_acls(request):
