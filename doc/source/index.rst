@@ -12,6 +12,7 @@ Contents:
    :maxdepth: 3
 
    cli
+   config
    commands
    core
    layouts

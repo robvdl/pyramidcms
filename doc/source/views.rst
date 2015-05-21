@@ -12,8 +12,14 @@ auth
 .. automodule:: pyramidcms.views.auth
     :members:
 
-main
+base
 ----
 
-.. automodule:: pyramidcms.views.main
+.. automodule:: pyramidcms.views.base
+    :members:
+
+static
+------
+
+.. automodule:: pyramidcms.views.static
     :members:

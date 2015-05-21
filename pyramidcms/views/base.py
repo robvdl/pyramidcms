@@ -4,6 +4,9 @@ from pyramidcms.layouts.base import BaseLayout
 
 
 class BaseViews(BaseLayout):
+    """
+    Base views, for now this just contains a temporary homepage.
+    """
 
     @view_config(route_name='home', renderer='index.jinja2')
     def home(self):
