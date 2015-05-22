@@ -17,6 +17,7 @@ Contents:
    models
    views
    security
+   scaffolds
 
 Indices and tables
 ==================
