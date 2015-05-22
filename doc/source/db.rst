@@ -1,5 +1,5 @@
-Database
-********
+Database access
+***************
 
 .. automodule:: pyramidcms.db
     :members:
