@@ -19,8 +19,5 @@ api.authorization
 api.resources
 =============
 
-.. automodule:: pyramidcms.api.resources
-    :members:
-
-.. automodule:: pyramidcms.api.resources.auth
-    :members:
+.. services::
+    :modules: pyramidcms.api.resources.auth
