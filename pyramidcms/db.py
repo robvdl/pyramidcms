@@ -226,8 +226,7 @@ class BaseModel(object):
             # many to many
             elif type(value) == InstrumentedList:
                 if full:
-                    fields_dict[field_name] = [model.serialize(full=True)
-                                               for model in value]
+                    fields_dict[field_name] = [model.serialize(full=True) for model in value]
                 else:
                     fields_dict[field_name] = [model.id for model in value]
 
