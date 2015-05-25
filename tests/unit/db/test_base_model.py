@@ -159,7 +159,7 @@ class BaseModelTests(TestCase):
         model = ApiModel()
 
         # orm_fields should include user but not user_id
-        self.assertListEqual(model.orm_fields, ['user', 'id', 'token', 'description'])
+        self.assertListEqual(sorted(model.orm_fields), ['description', 'id', 'token', 'user'])
 
     @patch('pyramidcms.db.ModelManager', Mock())
     def test_db_columns(self):
@@ -169,4 +169,4 @@ class BaseModelTests(TestCase):
         model = ApiModel()
 
         # db_columns should include user_id but not user
-        self.assertListEqual(model.db_columns, ['id', 'token', 'user_id', 'description'])
+        self.assertListEqual(sorted(model.db_columns), ['description', 'id', 'token', 'user_id', ])

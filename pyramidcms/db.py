@@ -3,7 +3,7 @@ import datetime
 import transaction
 
 from sqlalchemy import Column, Integer, inspect, engine_from_config
-from sqlalchemy.orm import scoped_session, sessionmaker, class_mapper
+from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.orm.collections import InstrumentedList
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
 
@@ -135,7 +135,8 @@ class BaseModel(object):
 
         :returns: a list of database column names for this model
         """
-        return [col.name for col in class_mapper(self.__class__).mapped_table.c]
+        mapper = inspect(self.__class__)
+        return [col.name for col in mapper.mapped_table.c]
 
     @property
     def orm_fields(self):
@@ -151,17 +152,21 @@ class BaseModel(object):
         :return: a list of field names for this model.
         """
         mapper = inspect(self.__class__)
+        fields = []
 
-        fields_list = []
-        for col in mapper.attrs:
-            column = getattr(self.__class__, col.key)
-            foreign_keys = getattr(column, 'foreign_keys', None)
+        # regular fields
+        for col in mapper.columns:
+            # exclude foreign key fields, as we use the relationships instead
+            if not col.foreign_keys:
+                fields.append(col.key)
 
-            # don't include foreign key columns like user_id
-            if not foreign_keys:
-                fields_list.append(col.key)
+        # relationship fields
+        for rel in mapper.relationships:
+            # exclude fields added by backrefs that cause serialization issues
+            if not (rel.backref is None and rel.back_populates):
+                fields.append(rel.key)
 
-        return fields_list
+        return fields
 
     def delete(self):
         """

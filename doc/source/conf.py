@@ -269,11 +269,12 @@ texinfo_documents = [
 intersphinx_mapping = {'http://docs.python.org/': None}
 
 
+# TODO: maybe we can get rid of this
 def skip(app, what, name, obj, skip, options):
     """
     This filter always skips 'relationship' and always includes '__init__'.
 
-    We do this because we always want to document to constructors, and
+    We do this because we always want to document the constructors, and
     although adding :special-members: will work too, this also documents
     other special methods which we may not always want to do.
 

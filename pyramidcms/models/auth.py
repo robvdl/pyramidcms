@@ -80,7 +80,7 @@ class User(Model):
     is_superuser = Column(Boolean, default=False)
     date_joined = Column(DateTime(timezone=True), server_default=func.now())
     last_login = Column(DateTime(timezone=True))
-    groups = relationship('Group', secondary=user_group_table)
+    groups = relationship('Group', secondary=user_group_table, backref='users')
 
     def __str__(self):
         if self.first_name and self.last_name:
