@@ -148,15 +148,16 @@ class BaseModel(object):
     @property
     def orm_fields(self):
         """
-        Returns a list of model field names.
+        Returns a list of model fields for serialization.
 
-        Since foreign keys are done across two fields in SQL Alchemy,
-        for example "user_id" for the actual field, and "user" for the
-        relation, we only include "user" in the list and not "user_id".
+        For foreign keys, we only include the relationship part, not
+        the actual field, which is what the db_columns property is for.
 
-        The list of fields also includes many-to-many relationships.
+        The list of fields also includes many-to-many relationships but
+        for backrefs we don't include the "other side" of the relationship,
+        or we end up going in loops when doing a serialize with full=True.
 
-        :return: a list of field names for this model.
+        :return: a list of fields for this model.
         """
         mapper = inspect(self.__class__)
         fields = []
@@ -165,13 +166,13 @@ class BaseModel(object):
         for col in mapper.columns:
             # exclude foreign key fields, as we use the relationships instead
             if not col.foreign_keys:
-                fields.append(col.key)
+                fields.append(col)
 
         # relationship fields
         for rel in mapper.relationships:
             # exclude fields added by backrefs that cause serialization issues
             if not (rel.backref is None and rel.back_populates):
-                fields.append(rel.key)
+                fields.append(rel)
 
         return fields
 
@@ -211,29 +212,30 @@ class BaseModel(object):
         :returns: model instance serialized into a dict.
         """
         fields_dict = {}
-        for field_name in self.orm_fields:
-            field = getattr(self, field_name)
+        for field in self.orm_fields:
+            field_name = field.key
+            value = getattr(self, field_name)
 
             # foreign keys
-            if isinstance(field, Model):
+            if isinstance(value, Model):
                 if full:
-                    fields_dict[field_name] = field.serialize(full=True)
+                    fields_dict[field_name] = value.serialize(full=True)
                 else:
-                    fields_dict[field_name] = field.id
+                    fields_dict[field_name] = value.id
 
             # many to many
-            elif type(field) == InstrumentedList:
+            elif type(value) == InstrumentedList:
                 if full:
                     fields_dict[field_name] = [model.serialize(full=True)
-                                               for model in field]
+                                               for model in value]
                 else:
-                    fields_dict[field_name] = [model.id for model in field]
+                    fields_dict[field_name] = [model.id for model in value]
 
             # regular fields
-            elif type(field) == datetime.datetime or type(field) == datetime.date:
-                fields_dict[field_name] = field.isoformat()  # encode dates
+            elif type(value) == datetime.datetime or type(value) == datetime.date:
+                fields_dict[field_name] = value.isoformat()  # encode dates
             else:
-                fields_dict[field_name] = field
+                fields_dict[field_name] = value
 
         return fields_dict
 

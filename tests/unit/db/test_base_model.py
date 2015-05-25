@@ -118,8 +118,15 @@ class BaseModelTests(TestCase):
         different field types, e.g. int, datetime, foreign key and m2m.
         """
         class MockModel(db.BaseModel):
-            orm_fields = ['fk_field', 'm2m_field', 'int_field', 'str_field',
-                          'bool_field', 'null_field', 'date_field']
+            orm_fields = [
+                Mock(key='fk_field'),
+                Mock(key='m2m_field'),
+                Mock(key='int_field'),
+                Mock(key='str_field'),
+                Mock(key='bool_field'),
+                Mock(key='null_field'),
+                Mock(key='date_field')
+            ]
             fk_field = Mock(spec=db.Model, id=1, serialize=Mock(return_value={'id': 1}))
             m2m_field = InstrumentedList([Mock(id=2, serialize=Mock(return_value={'id': 2}))])
             int_field = 10
@@ -159,7 +166,8 @@ class BaseModelTests(TestCase):
         model = ApiModel()
 
         # orm_fields should include user but not user_id
-        self.assertListEqual(sorted(model.orm_fields), ['description', 'id', 'token', 'user'])
+        fields = sorted([field.key for field in model.orm_fields])
+        self.assertListEqual(fields, ['description', 'id', 'token', 'user'])
 
     @patch('pyramidcms.db.ModelManager', Mock())
     def test_db_columns(self):
@@ -169,4 +177,5 @@ class BaseModelTests(TestCase):
         model = ApiModel()
 
         # db_columns should include user_id but not user
-        self.assertListEqual(sorted(model.db_columns), ['description', 'id', 'token', 'user_id', ])
+        columns = sorted(model.db_columns)
+        self.assertListEqual(columns, ['description', 'id', 'token', 'user_id'])
