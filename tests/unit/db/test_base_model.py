@@ -64,8 +64,17 @@ class BaseModelTests(TestCase):
             def __str__(self):
                 return 'str_method'
 
+        class EmptyMockModel(db.BaseModel):
+            pass
+
+        # if there is an __str__ method, it will be called
         model = MockModel()
         self.assertEqual(repr(model), '<MockModel: str_method>')
+
+        # the __str__ method from the model base class is used instead
+        model = EmptyMockModel()
+        model.id = 10
+        self.assertEqual(repr(model), '<EmptyMockModel: 10>')
 
     @patch('pyramidcms.db.ModelManager', Mock())
     def test_delete(self):
