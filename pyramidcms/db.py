@@ -122,6 +122,13 @@ class BaseModel(object):
 
         return RE_CAMELCASE.sub(_join, cls.__name__).lstrip('_')
 
+    def __str__(self):
+        """
+        Should be implemented in each model, we do need it here though,
+        or we get a recursion loop going when calling __repr__.
+        """
+        return str(self.id)
+
     def __repr__(self):
         return '<{}: {}>'.format(self.__class__.__name__, self)
 
