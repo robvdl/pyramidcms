@@ -19,10 +19,22 @@ class Command(BaseCommand):
             # load some permissions for the API resource ACLAuthorization class
             for resource in ('user', 'group', 'permission'):
                 perms[resource] = {
-                    'create': Permission.objects.create(name='create-' + resource, description='User can create {} resources.'.format(resource)),
-                    'read': Permission.objects.create(name='read-' + resource, description='User can read {} resources.'.format(resource)),
-                    'update': Permission.objects.create(name='update-' + resource, description='User can update {} resources.'.format(resource)),
-                    'delete': Permission.objects.create(name='delete-' + resource, description='User can delete {} resources.'.format(resource)),
+                    'create': Permission.objects.create(
+                        name='create-' + resource,
+                        description='User can create {} resources.'.format(resource)
+                    ),
+                    'read': Permission.objects.create(
+                        name='read-' + resource,
+                        description='User can read {} resources.'.format(resource)
+                    ),
+                    'update': Permission.objects.create(
+                        name='update-' + resource,
+                        description='User can update {} resources.'.format(resource)
+                    ),
+                    'delete': Permission.objects.create(
+                        name='delete-' + resource,
+                        description='User can delete {} resources.'.format(resource)
+                    ),
                 }
 
             # groups
