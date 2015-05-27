@@ -4,7 +4,7 @@ from unittest.mock import Mock
 from pyramid import testing
 from pyramid.httpexceptions import HTTPNotFound
 
-from pyramidcms.api import ModelApi, cms_resource
+from pyramidcms.api import ModelApi, Bundle, cms_resource
 
 
 @cms_resource(resource_name='model')
@@ -64,7 +64,8 @@ class ModelApiTests(TestCase):
         resource1 = MockModelApi(request)
 
         mock_model_instance = Mock()
-        resource1.dehydrate(mock_model_instance)
+        bundle = Bundle(obj=mock_model_instance, request=request)
+        resource1.dehydrate(bundle)
 
         # check if mock_model_instance.serialize() was called
         mock_model_instance.serialize.assert_called_with()

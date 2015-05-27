@@ -3,26 +3,26 @@ class Authorization(object):
     Basic authorization class that always allows everything.
     """
 
-    def read_list(self, obj_list, resource):
+    def read_list(self, obj_list, bundle):
         return obj_list
 
-    def read_detail(self, obj, resource):
+    def read_detail(self, obj, bundle):
         return True
 
-    def create_list(self, obj_list, resource):
+    def create_list(self, obj_list, bundle):
         return obj_list
 
-    def create_detail(self, obj, resource):
+    def create_detail(self, obj, bundle):
         return True
 
-    def update_list(self, obj_list, resource):
+    def update_list(self, obj_list, bundle):
         return obj_list
 
-    def update_detail(self, obj, resource):
+    def update_detail(self, obj, bundle):
         return True
 
-    def delete_list(self, obj_list, resource):
+    def delete_list(self, obj_list, bundle):
         return obj_list
 
-    def delete_detail(self, obj, resource):
+    def delete_detail(self, obj, bundle):
         return True

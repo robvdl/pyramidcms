@@ -4,7 +4,7 @@ from unittest.mock import patch, Mock, MagicMock
 from pyramid import testing
 from pyramid.httpexceptions import HTTPBadRequest, HTTPForbidden
 
-from pyramidcms.api import ApiBase, cms_resource, get_global_acls
+from pyramidcms.api import ApiBase, Bundle, cms_resource, get_global_acls
 
 
 @cms_resource(resource_name='simple')
@@ -31,6 +31,10 @@ class NumberApi(ApiBase):
 
     def get_obj(self, obj_id):
         return obj_id
+
+    def dehydrate(self, bundle):
+        bundle.data = {'number': bundle.obj}
+        return bundle
 
 
 class ApiBaseTest(TestCase):
@@ -115,13 +119,17 @@ class ApiBaseTest(TestCase):
     def test_hydrate(self):
         """
         Hydrate doesn't really do anything in the ApiBase class,
-        it just returns the original object as-is.
+        it just returns the bundle object as-is.
         """
         request = testing.DummyRequest()
         api = ApiBase(request)
+
         test_obj = Mock()
-        hydrated = api.hydrate(test_obj)
-        self.assertEqual(test_obj, hydrated)
+        bundle = Bundle(obj=test_obj, request=request)
+        hydrated = api.hydrate(bundle)
+
+        # they should be the same objects
+        self.assertEqual(bundle, hydrated)
 
     def test_dehydrate(self):
         """
@@ -130,9 +138,13 @@ class ApiBaseTest(TestCase):
         """
         request = testing.DummyRequest()
         api = ApiBase(request)
+
         test_obj = Mock()
-        dehydrated = api.dehydrate(test_obj)
-        self.assertEqual(test_obj, dehydrated)
+        bundle = Bundle(obj=test_obj, request=request)
+        dehydrated = api.dehydrate(bundle)
+
+        # they should be the same objects
+        self.assertEqual(bundle, dehydrated)
 
     def test_get(self):
         """
@@ -141,7 +153,7 @@ class ApiBaseTest(TestCase):
         request = testing.DummyRequest()
         request.matchdict = {'id': 10}
         api = NumberApi(request)
-        self.assertEqual(api.get(), 10)
+        self.assertEqual(api.get(), {'number': 10})
 
     def test_get__authorization(self):
         """

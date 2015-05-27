@@ -7,6 +7,7 @@ from pyramidcms.api.authorization import ReadOnlyAuthorization
 from pyramidcms.core.paginator import Paginator
 from pyramidcms.core.exceptions import InvalidPage
 from pyramidcms.security import RootFactory
+from .bundle import Bundle
 
 
 def get_global_acls(request):
@@ -59,6 +60,8 @@ class ApiMeta(object):
     ordering = []
     authentication = Authentication()
     authorization = ReadOnlyAuthorization()
+    object_class = None
+    always_return_data = False
 
     def __new__(cls, meta=None):
         overrides = {}
@@ -132,7 +135,8 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
         This method filters the objects coming from the :meth:`get_obj_list()`
         method using the authorization class read_list() method.
         """
-        return self._meta.authorization.read_list(self.get_obj_list(), self)
+        base_bundle = self.build_bundle(request=self.request)
+        return self._meta.authorization.read_list(self.get_obj_list(), base_bundle)
 
     def get_obj_list(self):
         """
@@ -144,19 +148,59 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
     def get_obj(self, obj_id):
         raise NotImplementedError
 
-    def dehydrate(self, obj):
-        return obj
+    def dehydrate_obj(self, obj):
+        """
+        Dehydrate an object, builds a bundle first.
+        """
+        bundle = self.build_bundle(obj=obj, request=self.request)
+        return self.dehydrate(bundle).obj
 
-    def hydrate(self, obj):
-        return obj
+    def dehydrate(self, bundle):
+        """
+        Dehydrate a bundle.
+
+        When implemented in API sub-classes, this method should serialize
+        bundle.obj and put the resulting dict in bundle.data.
+        """
+        return bundle
+
+    def hydrate(self, bundle):
+        """
+        Hydrate a bundle.
+
+        When implemented in API sub-classes, this method should deserialize
+        bundle.data and reconstruct this into an object bundle.obj.
+        """
+        return bundle
+
+    def build_bundle(self, obj=None, data=None, request=None):
+        """
+        Given either an object, a data dictionary or both, builds a ``Bundle``
+        for use throughout the ``dehydrate/hydrate`` cycle.
+
+        If no object is provided, an empty object from
+        ``ApiBase._meta.object_class`` is created so that attempts to access
+        ``bundle.obj`` do not fail.
+        """
+        if obj is None and self._meta.object_class:
+            obj = self._meta.object_class()
+
+        return Bundle(
+            obj=obj,
+            data=data,
+            request=request,
+            resource=self
+        )
 
     def get(self):
         if self._meta.authentication.is_authenticated(self.request):
             obj = self.get_obj(int(self.request.matchdict['id']))
+            bundle = self.build_bundle(obj=obj, request=self.request)
 
             # check if we have read access to this object
-            if self._meta.authorization.read_detail(obj, self):
-                return self.dehydrate(obj)
+            if self._meta.authorization.read_detail(obj, bundle):
+                bundle = self.dehydrate(bundle)
+                return bundle.data
             else:
                 raise HTTPForbidden()
         else:
@@ -196,7 +240,7 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
                     'previous': prev_page_url,
                     'total_count': self.paginator.count
                 },
-                'items': [self.dehydrate(obj) for obj in page.object_list]
+                'items': [self.dehydrate_obj(obj) for obj in page.object_list]
             }
         else:
             raise HTTPForbidden()
@@ -221,6 +265,12 @@ class ModelApi(ApiBase):
     models, it is similar to the ModelResource class in TastyPie.
     """
 
+    def __init__(self, request):
+        super().__init__(request)
+
+        # ApiBase class uses object_class in places, so set this to the model.
+        self._meta.object_class = self._meta.model
+
     def get_obj_list(self):
         """
         For a ``ModelApi``, get_obj_list returns a queryset, so when we get
@@ -235,5 +285,6 @@ class ModelApi(ApiBase):
             raise HTTPNotFound()
         return obj
 
-    def dehydrate(self, obj):
-        return obj.serialize()
+    def dehydrate(self, bundle):
+        bundle.data = bundle.obj.serialize()
+        return bundle

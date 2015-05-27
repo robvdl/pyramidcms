@@ -10,20 +10,20 @@ class ReadOnlyAuthorization(Authorization):
     This is the default authorization class.
     """
 
-    def create_list(self, obj_list, resource):
+    def create_list(self, obj_list, bundle):
         raise HTTPForbidden()
 
-    def create_detail(self, obj, resource):
+    def create_detail(self, obj, bundle):
         raise HTTPForbidden()
 
-    def update_list(self, obj_list, resource):
+    def update_list(self, obj_list, bundle):
         raise HTTPForbidden()
 
-    def update_detail(self, obj, resource):
+    def update_detail(self, obj, bundle):
         raise HTTPForbidden()
 
-    def delete_list(self, obj_list, resource):
+    def delete_list(self, obj_list, bundle):
         raise HTTPForbidden()
 
-    def delete_detail(self, obj, resource):
+    def delete_detail(self, obj, bundle):
         raise HTTPForbidden()
