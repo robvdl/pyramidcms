@@ -145,34 +145,73 @@ class BaseModel(object):
         mapper = inspect(self.__class__)
         return [col.name for col in mapper.mapped_table.c]
 
+    def get_column_for_attr(self, attr):
+        """
+        Given the attribute, try to find the matching column object.
+
+        This is easy to do for regular ColumnProperty types, but a
+        bit trickier with RelationshipType and depends on the type
+        of the relationship.
+        """
+        if attr.__class__.__name__ == 'ColumnProperty':
+            return attr.columns[0]
+
+        # Older versions of SQL Alchemy use RelationProperty
+        elif attr.__class__.__name__ in ('RelationProperty', 'RelationshipProperty'):
+            relation_type = attr.direction.name
+            if relation_type == 'MANYTOONE':
+                # many to one has a matching column on the model,
+                # e.g. the "user" relation might have a "user_id" column.
+                return list(attr.local_columns)[0]
+            elif relation_type == 'MANYTOMANY':
+                # m2m has no matching column on the model
+                return None
+            else:
+                # this could happen when we get a relationship type
+                # that we haven't dealt with yet in serialization.
+                raise TypeError('Cannot handle relationship type: ' + relation_type)
+
+        else:
+            # this should never happen
+            raise TypeError('Unknown attribute type')
+
     @property
     def orm_fields(self):
         """
-        Returns a list of model fields for serialization.
+        Returns a list of field tuples for this model, in the form
+        of (attr, column).
 
-        For foreign keys, we only include the relationship part, not
-        the actual field, which is what the db_columns property is for.
+        Since foreign keys are done across two fields in SQL Alchemy,
+        for example "user_id" for the actual field, and "user" for the
+        relation, we only include "user" in the list and not "user_id".
+        The list of fields also includes many-to-many relationships.
 
-        The list of fields also includes many-to-many relationships but
-        for backrefs we don't include the "other side" of the relationship,
-        or we end up going in loops when doing a serialize with full=True.
-
-        :return: a list of fields for this model.
+        :return: a list of field tuples for this model.
         """
         mapper = inspect(self.__class__)
+
         fields = []
+        for attr in mapper.attrs:
+            # Try to get the matching column object for this attribute.
+            col = self.get_column_for_attr(attr)
 
-        # regular fields
-        for col in mapper.columns:
-            # exclude foreign key fields, as we use the relationships instead
-            if not col.foreign_keys:
-                fields.append(col)
+            # Older versions of SQL Alchemy use RelationProperty
+            if attr.__class__.__name__ in ('RelationProperty', 'RelationshipProperty'):
+                # If backref is None and back_populates set, this is a backref
+                # which we won't return to avoid going round in circles.
+                if attr.backref is None and attr.back_populates is not None:
+                    continue
 
-        # relationship fields
-        for rel in mapper.relationships:
-            # exclude fields added by backrefs that cause serialization issues
-            if not (rel.backref is None and rel.back_populates):
-                fields.append(rel)
+            elif attr.__class__.__name__ == 'ColumnProperty':
+                # Don't include foreign key fields directly like "user_id",
+                # these are already handled by the relationship "user" instead.
+                if col.foreign_keys:
+                    continue
+
+            else:
+                raise TypeError('Unknown attribute type')
+
+            fields.append((attr, col))
 
         return fields
 
@@ -212,29 +251,30 @@ class BaseModel(object):
         :returns: model instance serialized into a dict.
         """
         fields_dict = {}
-        for field in self.orm_fields:
-            field_name = field.key
-            value = getattr(self, field_name)
+
+        for attr, column in self.orm_fields:
+            attr_name = attr.key
+            value = getattr(self, attr_name)
 
             # foreign keys
             if isinstance(value, Model):
                 if full:
-                    fields_dict[field_name] = value.serialize(full=True)
+                    fields_dict[attr_name] = value.serialize(full=True)
                 else:
-                    fields_dict[field_name] = value.id
+                    fields_dict[attr_name] = value.id
 
             # many to many
             elif type(value) == InstrumentedList:
                 if full:
-                    fields_dict[field_name] = [model.serialize(full=True) for model in value]
+                    fields_dict[attr_name] = [model.serialize(full=True) for model in value]
                 else:
-                    fields_dict[field_name] = [model.id for model in value]
+                    fields_dict[attr_name] = [model.id for model in value]
 
             # regular fields
             elif type(value) == datetime.datetime or type(value) == datetime.date:
-                fields_dict[field_name] = value.isoformat()  # encode dates
+                fields_dict[attr_name] = value.isoformat()  # encode dates
             else:
-                fields_dict[field_name] = value
+                fields_dict[attr_name] = value
 
         return fields_dict
 
