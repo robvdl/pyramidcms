@@ -271,7 +271,7 @@ class BaseModel(object):
                     fields_dict[attr_name] = [model.id for model in value]
 
             # regular fields
-            elif type(value) == datetime.datetime or type(value) == datetime.date:
+            elif type(value) in (datetime.datetime, datetime.date):
                 fields_dict[attr_name] = value.isoformat()  # encode dates
             else:
                 fields_dict[attr_name] = value
