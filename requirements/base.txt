@@ -9,3 +9,4 @@ passlib==1.6.2
 alembic==0.7.6
 WTForms==2.0.2
 cornice==1.0.0
+python-dateutil==2.4.2
