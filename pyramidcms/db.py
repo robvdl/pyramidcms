@@ -150,7 +150,7 @@ class BaseModel(object):
         Given the attribute, try to find the matching column object.
 
         This is easy to do for regular ColumnProperty types, but a
-        bit trickier with RelationshipType and depends on the type
+        bit trickier with relationships and depends on the type
         of the relationship.
         """
         if attr.__class__.__name__ == 'ColumnProperty':
@@ -277,6 +277,16 @@ class BaseModel(object):
                 fields_dict[attr_name] = value
 
         return fields_dict
+
+    def __json__(self, request):
+        """
+        Allows returning of a model instance from a view and it will
+        automatically get serialized.
+
+        :param request: Pyramid request object
+        :return: dictionary of serialized model instance
+        """
+        return self.serialize()
 
 
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
