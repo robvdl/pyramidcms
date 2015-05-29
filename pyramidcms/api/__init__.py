@@ -238,17 +238,20 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
 
             # now we can check if we are allowed to update this object
             if self._meta.authorization.update_detail(obj, bundle):
-                # hydrate updates and saves the object in ModelApi.
-                bundle = self.hydrate(bundle)
+                if obj is not None:
+                    # hydrate updates and saves the object in ModelApi.
+                    bundle = self.hydrate(bundle)
 
-                # returning the data is optional and is done per-resource.
-                if self._meta.always_return_data:
-                    # return the data that was saved during hydrate
-                    bundle = self.dehydrate(bundle)
-                    return bundle.data
+                    # returning the data is optional and is done per-resource.
+                    if self._meta.always_return_data:
+                        # return the data that was saved during hydrate
+                        bundle = self.dehydrate(bundle)
+                        return bundle.data
+                    else:
+                        # returns 204 no content
+                        raise HTTPNoContent('Successfully updated resource')
                 else:
-                    # returns 204 no content
-                    raise HTTPNoContent('Successfully updated resource')
+                    raise HTTPNotFound('Resource does not exist')
             else:
                 raise HTTPForbidden('Unauthorized')
         else:
