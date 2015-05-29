@@ -1,6 +1,6 @@
 from cornice.resource import resource
 from pyramid.decorator import reify
-from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound, HTTPForbidden, HTTPNoContent
+from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound, HTTPForbidden, HTTPNoContent, HTTPConflict
 
 from pyramidcms.api.authentication import Authentication
 from pyramidcms.api.authorization import ReadOnlyAuthorization
@@ -204,9 +204,8 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
         API endpoint for get resource (get-detail).
         """
         if self._meta.authentication.is_authenticated(self.request):
+            # get the object to view
             obj = self.get_obj(int(self.request.matchdict['id']))
-
-            # always build a bundle, even if obj=None
             bundle = self.build_bundle(obj=obj, request=self.request)
 
             # check if we have read access to this object first
@@ -271,22 +270,30 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
             except ValueError:
                 raise HTTPBadRequest('Invalid JSON data')
 
-            # building a bundle with data creates a new (blank) bundle.obj
-            bundle = self.build_bundle(data=data, request=self.request)
+            # if there is an id, fetch the object so we can check if it exists.
+            if 'id' in data:
+                obj = self.get_obj(data['id'])
+            else:
+                obj = None
+            bundle = self.build_bundle(obj=obj, data=data, request=self.request)
 
             # check if we are allowed to create objects for this resource
             if self._meta.authorization.post_list(bundle.obj, bundle):
-                # hydrate saves the object in ModelApi.
-                bundle = self.hydrate(bundle)
+                # we need to check if the object exists (if there was an id)
+                if bundle.obj is None:
+                    # hydrate saves the object in ModelApi.
+                    bundle = self.hydrate(bundle)
 
-                # returning the data is optional and is done per-resource.
-                if self._meta.always_return_data:
-                    # return the data that was saved during hydrate
-                    bundle = self.dehydrate(bundle)
-                    return bundle.data
+                    # returning the data is optional and is done per-resource.
+                    if self._meta.always_return_data:
+                        # return the data that was saved during hydrate
+                        bundle = self.dehydrate(bundle)
+                        return bundle.data
+                    else:
+                        # returns 204 no content
+                        raise HTTPNoContent('Successfully created resource')
                 else:
-                    # returns 204 no content
-                    raise HTTPNoContent('Successfully created resource')
+                    raise HTTPConflict('Resource with id {} already exists'.format(data['id']))
             else:
                 raise HTTPForbidden('Not authorized')
         else:
