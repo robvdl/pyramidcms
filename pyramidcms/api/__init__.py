@@ -8,7 +8,6 @@ from pyramidcms.api.authorization import ReadOnlyAuthorization
 from pyramidcms.core.paginator import Paginator
 from pyramidcms.core.exceptions import InvalidPage
 from pyramidcms.security import RootFactory
-from pyramidcms.db import DBSession
 from .bundle import Bundle
 
 
@@ -153,6 +152,9 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
     def delete_obj(self, obj):
         raise NotImplementedError
 
+    def save_obj(self, obj):
+        raise NotImplementedError
+
     def dehydrate_obj(self, obj):
         """
         Dehydrate an object, builds a bundle first.
@@ -244,8 +246,9 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
             # now we can check if we are allowed to update this object
             if self._meta.authorization.update_detail(obj, bundle):
                 if obj is not None:
-                    # hydrate updates and saves the object in ModelApi.
+                    # hydrate and save the object
                     bundle = self.hydrate(bundle)
+                    self.save_obj(bundle.obj)
 
                     # returning the data is optional and is done per-resource.
                     if self._meta.always_return_data:
@@ -314,8 +317,9 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
             if self._meta.authorization.create_list(bundle.obj, bundle):
                 # we need to check if the object exists (if data has an id)
                 if obj is None:
-                    # hydrate saves the object in ModelApi.
+                    # hydrate and save the object
                     bundle = self.hydrate(bundle)
+                    self.save_obj(bundle.obj)
 
                     # returning the data is optional and is done per-resource.
                     if self._meta.always_return_data:
@@ -386,6 +390,9 @@ class Api(ApiBase):
     def delete_obj(self, obj):
         pass
 
+    def save_obj(self, obj):
+        pass
+
 
 class ModelApi(ApiBase):
     """
@@ -413,6 +420,9 @@ class ModelApi(ApiBase):
     def delete_obj(self, obj):
         obj.delete()
 
+    def save_obj(self, obj):
+        obj.save()
+
     def dehydrate(self, bundle):
         """
         Dehydrate serializes the object to a dict and puts it in bundle.data
@@ -433,5 +443,4 @@ class ModelApi(ApiBase):
         :returns: :class:`pyramidcms.api.Bundle` object.
         """
         bundle.obj.deserialize(bundle.data)
-        DBSession.add(bundle.obj)
         return bundle
