@@ -31,7 +31,7 @@ def cms_resource(resource_name):
     :return: @resource decorator
     """
     list_url = '/api/' + resource_name
-    detail_url = list_url + '/{id:\d+}'
+    detail_url = list_url + '/{id}'
 
     return resource(
         name=resource_name,
@@ -205,7 +205,8 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
         """
         if self._meta.authentication.is_authenticated(self.request):
             # get the object to view
-            obj = self.get_obj(int(self.request.matchdict['id']))
+            obj_id = self.request.matchdict['id']
+            obj = self.get_obj(obj_id)
             bundle = self.build_bundle(obj=obj, request=self.request)
 
             # check if we have read access to this object first
@@ -214,7 +215,7 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
                     bundle = self.dehydrate(bundle)
                     return bundle.data
                 else:
-                    raise HTTPNotFound('Resource does not exist')
+                    raise HTTPNotFound('Resource {}/{} does not exist'.format(self.api_url, obj_id))
             else:
                 raise HTTPForbidden('Not authorized')
         else:
@@ -232,7 +233,8 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
                 raise HTTPBadRequest('Invalid JSON data')
 
             # get the current object to update, build a bundle with the data
-            obj = self.get_obj(int(self.request.matchdict['id']))
+            obj_id = self.request.matchdict['id']
+            obj = self.get_obj(obj_id)
             bundle = self.build_bundle(obj=obj, data=data, request=self.request)
 
             # now we can check if we are allowed to update this object
@@ -248,9 +250,9 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
                         return bundle.data
                     else:
                         # returns 204 no content
-                        raise HTTPNoContent('Successfully updated resource')
+                        return HTTPNoContent('Successfully updated {}/{}'.format(self.api_url, obj_id))
                 else:
-                    raise HTTPNotFound('Resource does not exist')
+                    raise HTTPNotFound('Resource {}/{} does not exist'.format(self.api_url, obj_id))
             else:
                 raise HTTPForbidden('Not authorized')
         else:
@@ -275,12 +277,14 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
                 obj = self.get_obj(data['id'])
             else:
                 obj = None
+
+            # create bundle based on data, obj should be None unless it exists
             bundle = self.build_bundle(obj=obj, data=data, request=self.request)
 
             # check if we are allowed to create objects for this resource
-            if self._meta.authorization.post_list(bundle.obj, bundle):
-                # we need to check if the object exists (if there was an id)
-                if bundle.obj is None:
+            if self._meta.authorization.create_list(bundle.obj, bundle):
+                # we need to check if the object exists (if data has an id)
+                if obj is None:
                     # hydrate saves the object in ModelApi.
                     bundle = self.hydrate(bundle)
 
@@ -291,9 +295,9 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
                         return bundle.data
                     else:
                         # returns 204 no content
-                        raise HTTPNoContent('Successfully created resource')
+                        return HTTPNoContent('Successfully created {}/{}'.format(self.api_url, bundle.obj.id))
                 else:
-                    raise HTTPConflict('Resource with id {} already exists'.format(data['id']))
+                    raise HTTPConflict('Resource {}/{} already exists'.format(self.api_url, obj.id))
             else:
                 raise HTTPForbidden('Not authorized')
         else:

@@ -125,7 +125,7 @@ def api_server_error(context, request):
             'status': 'error',
             'errors': [
                 {
-                    'name': 'Unexpected error',
+                    'name': 'Unhandled exception: {}'.format(description),
                     'location': 'unknown',
                     'description': description,
                     'traceback': tb_lines
