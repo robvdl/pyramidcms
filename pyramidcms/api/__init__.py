@@ -1,12 +1,13 @@
 from cornice.resource import resource
 from pyramid.decorator import reify
-from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound, HTTPForbidden
+from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound, HTTPForbidden, HTTPNoContent
 
 from pyramidcms.api.authentication import Authentication
 from pyramidcms.api.authorization import ReadOnlyAuthorization
 from pyramidcms.core.paginator import Paginator
 from pyramidcms.core.exceptions import InvalidPage
 from pyramidcms.security import RootFactory
+from pyramidcms.db import DBSession
 from .bundle import Bundle
 
 
@@ -161,6 +162,9 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
 
         When implemented in API sub-classes, this method should serialize
         bundle.obj and put the resulting dict in bundle.data.
+
+        :param bundle: :class:`pyramidcms.api.Bundle` object.
+        :returns: :class:`pyramidcms.api.Bundle` object.
         """
         return bundle
 
@@ -170,6 +174,9 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
 
         When implemented in API sub-classes, this method should deserialize
         bundle.data and reconstruct this into an object bundle.obj.
+
+        :param bundle: :class:`pyramidcms.api.Bundle` object.
+        :returns: :class:`pyramidcms.api.Bundle` object.
         """
         return bundle
 
@@ -193,23 +200,96 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
         )
 
     def get(self):
+        """
+        API endpoint for get resource (get-detail).
+        """
         if self._meta.authentication.is_authenticated(self.request):
             obj = self.get_obj(int(self.request.matchdict['id']))
-            bundle = self.build_bundle(obj=obj, request=self.request)
+            if obj is not None:
+                bundle = self.build_bundle(obj=obj, request=self.request)
 
-            # check if we have read access to this object
-            if self._meta.authorization.read_detail(obj, bundle):
-                bundle = self.dehydrate(bundle)
-                return bundle.data
+                # check if we have read access to this object
+                if self._meta.authorization.read_detail(obj, bundle):
+                    bundle = self.dehydrate(bundle)
+                    return bundle.data
+                else:
+                    raise HTTPForbidden('Unauthorized')
             else:
-                raise HTTPForbidden()
+                raise HTTPNotFound('Resource does not exist')
         else:
-            raise HTTPForbidden()
+            raise HTTPForbidden('Authentication required')
+
+    def put(self):
+        """
+        API endpoint for update resource (update-detail).
+        """
+        if self._meta.authentication.is_authenticated(self.request):
+            # check if we have valid JSON data first
+            try:
+                data = self.request.json_body
+            except ValueError:
+                raise HTTPBadRequest('Invalid JSON data')
+
+            # get the current object to update, build a bundle with the data
+            obj = self.get_obj(int(self.request.matchdict['id']))
+            bundle = self.build_bundle(obj=obj, data=data, request=self.request)
+
+            # now we can check if we are allowed to update this object
+            if self._meta.authorization.update_detail(obj, bundle):
+                # hydrate updates and saves the object in ModelApi.
+                bundle = self.hydrate(bundle)
+
+                # returning the data is optional and is done per-resource.
+                if self._meta.always_return_data:
+                    # return the data that was saved during hydrate
+                    bundle = self.dehydrate(bundle)
+                    return bundle.data
+                else:
+                    # returns 204 no content
+                    raise HTTPNoContent('Successfully updated resource')
+            else:
+                raise HTTPForbidden('Unauthorized')
+        else:
+            raise HTTPForbidden('Authentication required')
+
+    def collection_post(self):
+        """
+        API endpoint for create resource (post-list).
+
+        This needs to be a collection_post instead of post, because we are
+        creating a new item, we don't need an id in the URL.
+        """
+        if self._meta.authentication.is_authenticated(self.request):
+            # check if we have valid JSON data first
+            try:
+                data = self.request.json_body
+            except ValueError:
+                raise HTTPBadRequest('Invalid JSON data')
+
+            # building a bundle with data creates a new (blank) bundle.obj
+            bundle = self.build_bundle(data=data, request=self.request)
+
+            # check if we are allowed to create objects for this resource
+            if self._meta.authorization.post_list(bundle.obj, bundle):
+                # hydrate saves the object in ModelApi.
+                bundle = self.hydrate(bundle)
+
+                # returning the data is optional and is done per-resource.
+                if self._meta.always_return_data:
+                    # return the data that was saved during hydrate
+                    bundle = self.dehydrate(bundle)
+                    return bundle.data
+                else:
+                    # returns 204 no content
+                    raise HTTPNoContent('Successfully created resource')
+            else:
+                raise HTTPForbidden('Unauthorized')
+        else:
+            raise HTTPForbidden('Authentication required')
 
     def collection_get(self):
         """
-        The API collection_get method is used by Cornice, it returns a list
-        of items for this API class.
+        API endpoint that returns a list of items for this resource (get-list).
         """
         if self._meta.authentication.is_authenticated(self.request):
             # authorization (filtering results) happens in paginator property
@@ -280,11 +360,27 @@ class ModelApi(ApiBase):
         return self._meta.model.objects.all()
 
     def get_obj(self, obj_id):
-        obj = self._meta.model.objects.get(id=obj_id)
-        if obj is None:
-            raise HTTPNotFound()
-        return obj
+        return self._meta.model.objects.get(id=obj_id)
 
     def dehydrate(self, bundle):
+        """
+        Dehydrate serializes the object to a dict and puts it in bundle.data
+
+        :param bundle: :class:`pyramidcms.api.Bundle` object.
+        :returns: :class:`pyramidcms.api.Bundle` object.
+        """
         bundle.data = bundle.obj.serialize()
+        return bundle
+
+    def hydrate(self, bundle):
+        """
+        Dehydrate deserializes the bundle.data dict into bundle.obj and puts
+        this object into the DBSession, this saves the object at the end of
+        the request using the pyramid_tm tween.
+
+        :param bundle: :class:`pyramidcms.api.Bundle` object.
+        :returns: :class:`pyramidcms.api.Bundle` object.
+        """
+        bundle.obj.deserialize(bundle.data)
+        DBSession.add(bundle.obj)
         return bundle

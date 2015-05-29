@@ -2,7 +2,6 @@ from unittest import TestCase
 from unittest.mock import Mock
 
 from pyramid import testing
-from pyramid.httpexceptions import HTTPNotFound
 
 from pyramidcms.api import ModelApi, Bundle, cms_resource
 
@@ -46,15 +45,15 @@ class ModelApiTests(TestCase):
 
     def test_get_obj__notfound(self):
         """
-        Test that ModelApi.get_obj(obj_id) raises a HTTPNotFound if
-        the database record with that id does not exist.
+        Test that ModelApi.get_obj(obj_id), should just return None
+        if the object does not exist, will raise HTTPNotFound in
+        the BaseApi class get() method instead.
         """
         request = testing.DummyRequest()
         resource1 = MockModelApi(request)
         resource1._meta.model.objects.get.return_value = None
 
-        with self.assertRaises(HTTPNotFound):
-            resource1.get_obj(10)
+        self.assertIsNone(resource1.get_obj(10))
 
     def test_dehydrate(self):
         """
