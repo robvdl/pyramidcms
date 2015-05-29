@@ -33,6 +33,10 @@ static.collect_dir = %(here)s/static
 # useful for development, but in production this should be handled by nginx.
 static.serve = true
 
+# global debug flag, turns on tracebacks in API, etc.
+# always leave this of in production unless debugging a problem.
+pyramidcms.debug = true
+
 ###
 # wsgi server configuration
 ###

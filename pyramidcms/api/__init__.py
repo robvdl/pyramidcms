@@ -205,17 +205,19 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
         """
         if self._meta.authentication.is_authenticated(self.request):
             obj = self.get_obj(int(self.request.matchdict['id']))
-            if obj is not None:
-                bundle = self.build_bundle(obj=obj, request=self.request)
 
-                # check if we have read access to this object
-                if self._meta.authorization.read_detail(obj, bundle):
+            # always build a bundle, even if obj=None
+            bundle = self.build_bundle(obj=obj, request=self.request)
+
+            # check if we have read access to this object first
+            if self._meta.authorization.read_detail(obj, bundle):
+                if obj is not None:
                     bundle = self.dehydrate(bundle)
                     return bundle.data
                 else:
-                    raise HTTPForbidden('Unauthorized')
+                    raise HTTPNotFound('Resource does not exist')
             else:
-                raise HTTPNotFound('Resource does not exist')
+                raise HTTPForbidden('Unauthorized')
         else:
             raise HTTPForbidden('Authentication required')
 

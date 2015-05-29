@@ -13,7 +13,7 @@ class AuthViews(BaseLayout):
     """
 
     @view_config(route_name='login', renderer='login.jinja2')
-    @forbidden_view_config(renderer='login.jinja2')
+    @forbidden_view_config(accept='text/html', renderer='login.jinja2')
     def login(self):
         return_url = self.request.POST.get('url', self.request.url)
         form = LoginForm(self.request.POST)

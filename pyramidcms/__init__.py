@@ -34,6 +34,10 @@ def includeme(config):
     serve_static_files = asbool(settings.get('static.serve', False))
     config.registry.settings['static.serve'] = serve_static_files
 
+    # debug flag, defaults to false if missing
+    debug = asbool(settings.get('pyramidcms.debug', False))
+    config.registry.settings['pyramidcms.debug'] = debug
+
     # routes
     config.add_route('home', '/')
     config.add_route('login', '/login')
