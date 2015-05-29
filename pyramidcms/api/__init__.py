@@ -150,6 +150,9 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
     def get_obj(self, obj_id):
         raise NotImplementedError
 
+    def delete_obj(self, obj):
+        raise NotImplementedError
+
     def dehydrate_obj(self, obj):
         """
         Dehydrate an object, builds a bundle first.
@@ -259,6 +262,31 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
         else:
             raise HTTPForbidden('Authentication required')
 
+    def delete(self):
+        """
+        API endpoint to delete a resource (delete-detail).
+        """
+        if self._meta.authentication.is_authenticated(self.request):
+            # get the current object to delete
+            obj_id = self.request.matchdict['id']
+            obj = self.get_obj(obj_id)
+            bundle = self.build_bundle(obj=obj, request=self.request)
+
+            # now we can check if we are allowed to delete this object
+            if self._meta.authorization.delete_detail(obj, bundle):
+                if obj is not None:
+                    # delete the object
+                    self.delete_obj(obj)
+
+                    # delete always returns 204 no content on success
+                    return HTTPNoContent('Successfully deleted {}/{}'.format(self.api_url, obj_id))
+                else:
+                    raise HTTPNotFound('Resource {}/{} does not exist'.format(self.api_url, obj_id))
+            else:
+                raise HTTPForbidden('Not authorized')
+        else:
+            raise HTTPForbidden('Authentication required')
+
     def collection_post(self):
         """
         API endpoint for create resource (post-list).
@@ -355,6 +383,9 @@ class Api(ApiBase):
     def get_obj(self, obj_id):
         return {}
 
+    def delete_obj(self, obj):
+        pass
+
 
 class ModelApi(ApiBase):
     """
@@ -378,6 +409,9 @@ class ModelApi(ApiBase):
 
     def get_obj(self, obj_id):
         return self._meta.model.objects.get(id=obj_id)
+
+    def delete_obj(self, obj):
+        obj.delete()
 
     def dehydrate(self, bundle):
         """
