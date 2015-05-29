@@ -217,7 +217,7 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
                 else:
                     raise HTTPNotFound('Resource does not exist')
             else:
-                raise HTTPForbidden('Unauthorized')
+                raise HTTPForbidden('Not authorized')
         else:
             raise HTTPForbidden('Authentication required')
 
@@ -253,7 +253,7 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
                 else:
                     raise HTTPNotFound('Resource does not exist')
             else:
-                raise HTTPForbidden('Unauthorized')
+                raise HTTPForbidden('Not authorized')
         else:
             raise HTTPForbidden('Authentication required')
 
@@ -288,7 +288,7 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
                     # returns 204 no content
                     raise HTTPNoContent('Successfully created resource')
             else:
-                raise HTTPForbidden('Unauthorized')
+                raise HTTPForbidden('Not authorized')
         else:
             raise HTTPForbidden('Authentication required')
 
