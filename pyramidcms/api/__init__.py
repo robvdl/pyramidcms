@@ -257,7 +257,7 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
                         return bundle.data
                     else:
                         # returns 204 no content
-                        return HTTPNoContent('Successfully updated {}/{}'.format(self.api_url, obj_id))
+                        return HTTPNoContent()
                 else:
                     raise HTTPNotFound('Resource {}/{} does not exist'.format(self.api_url, obj_id))
             else:
@@ -281,8 +281,8 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
                     # delete the object
                     self.delete_obj(obj)
 
-                    # delete always returns 204 no content on success
-                    return HTTPNoContent('Successfully deleted {}/{}'.format(self.api_url, obj_id))
+                    # returns 204 no content
+                    return HTTPNoContent()
                 else:
                     raise HTTPNotFound('Resource {}/{} does not exist'.format(self.api_url, obj_id))
             else:
@@ -328,7 +328,7 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
                         return bundle.data
                     else:
                         # returns 201 created
-                        return HTTPCreated('{}/{}'.format(self.api_url, bundle.obj.id))
+                        return HTTPCreated()
                 else:
                     raise HTTPConflict('Resource {}/{} already exists'.format(self.api_url, obj.id))
             else:
