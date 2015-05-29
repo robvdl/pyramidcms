@@ -1,6 +1,7 @@
 from cornice.resource import resource
 from pyramid.decorator import reify
-from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound, HTTPForbidden, HTTPNoContent, HTTPConflict
+from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound, HTTPForbidden,\
+    HTTPNoContent, HTTPConflict, HTTPCreated
 
 from pyramidcms.api.authentication import Authentication
 from pyramidcms.api.authorization import ReadOnlyAuthorization
@@ -294,8 +295,8 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
                         bundle = self.dehydrate(bundle)
                         return bundle.data
                     else:
-                        # returns 204 no content
-                        return HTTPNoContent('Successfully created {}/{}'.format(self.api_url, bundle.obj.id))
+                        # returns 201 created
+                        return HTTPCreated('{}/{}'.format(self.api_url, bundle.obj.id))
                 else:
                     raise HTTPConflict('Resource {}/{} already exists'.format(self.api_url, obj.id))
             else:
