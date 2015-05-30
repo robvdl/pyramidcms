@@ -25,23 +25,23 @@ class ModelApiTests(TestCase):
         Test that ModelApi.get_obj_list() runs the query: model.objects.all()
         """
         request = testing.DummyRequest()
-        resource1 = MockModelApi(request)
-        resource1.get_obj_list()
+        api = MockModelApi(request)
+        api.get_obj_list()
 
         # check if _meta.model.objects.all() was called
-        resource1._meta.model.objects.all.assert_called_with()
+        api._meta.model.objects.all.assert_called_with()
 
     def test_get_obj__success(self):
         """
         Test that ModelApi.get_obj(obj_id) runs the correct query.
         """
         request = testing.DummyRequest()
-        resource1 = MockModelApi(request)
-        resource1._meta.model.objects.get.return_value = Mock()
+        api = MockModelApi(request)
+        api._meta.model.objects.get.return_value = Mock()
 
-        resource1.get_obj(10)
+        api.get_obj(10)
 
-        resource1._meta.model.objects.get.assert_called_with(id=10)
+        api._meta.model.objects.get.assert_called_with(id=10)
 
     def test_get_obj__notfound(self):
         """
@@ -50,21 +50,36 @@ class ModelApiTests(TestCase):
         the BaseApi class get() method instead.
         """
         request = testing.DummyRequest()
-        resource1 = MockModelApi(request)
-        resource1._meta.model.objects.get.return_value = None
+        api = MockModelApi(request)
+        api._meta.model.objects.get.return_value = None
 
-        self.assertIsNone(resource1.get_obj(10))
+        self.assertIsNone(api.get_obj(10))
 
     def test_dehydrate(self):
         """
         Checks that the dehydrate method calls model.serialize()
         """
         request = testing.DummyRequest()
-        resource1 = MockModelApi(request)
+        api = MockModelApi(request)
 
-        mock_model_instance = Mock()
-        bundle = Bundle(obj=mock_model_instance, request=request)
-        resource1.dehydrate(bundle)
+        obj = Mock()
+        bundle = Bundle(obj=obj, resource=api, request=request)
+        api.dehydrate(bundle)
 
         # check if mock_model_instance.serialize() was called
-        mock_model_instance.serialize.assert_called_with()
+        obj.serialize.assert_called_with()
+
+    def test_hydrate(self):
+        """
+        Checks that the hydrate method calls model.deserialize()
+        """
+        request = testing.DummyRequest()
+        api = MockModelApi(request)
+
+        obj = Mock()
+        data = {'id': 10, 'name': 'admin'}
+        bundle = Bundle(obj=obj, data=data, resource=api, request=request)
+        api.hydrate(bundle)
+
+        # check if mock_model_instance.serialize() was called
+        obj.deserialize.assert_called_with(data)
