@@ -2,7 +2,7 @@ from unittest import TestCase
 from unittest.mock import patch, Mock, MagicMock
 
 from pyramid import testing
-from pyramid.httpexceptions import HTTPBadRequest, HTTPForbidden
+from pyramid.httpexceptions import HTTPBadRequest, HTTPForbidden, HTTPNotFound
 
 from pyramidcms.api import ApiBase, Bundle, cms_resource, get_global_acls
 
@@ -204,14 +204,26 @@ class ApiBaseTest(TestCase):
         # they should be the same objects
         self.assertEqual(bundle, dehydrated)
 
-    def test_get(self):
+    def test_get__success(self):
         """
-        Tests the BaseApi.get() method.
+        Tests the BaseApi.get() method when the object exists.
         """
         request = testing.DummyRequest()
         request.matchdict = {'id': 10}
         api = NumberApi(request)
         self.assertEqual(api.get(), {'number': 10})
+
+    def test_get__notfound(self):
+        """
+        Tests the BaseApi.get() method when the object is not found.
+        """
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 10}
+        api = NumberApi(request)
+        api.get_obj = Mock(return_value=None)
+
+        with self.assertRaises(HTTPNotFound):
+            api.get()
 
     def test_get__authorization(self):
         """
