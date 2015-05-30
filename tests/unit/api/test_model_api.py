@@ -55,6 +55,30 @@ class ModelApiTests(TestCase):
 
         self.assertIsNone(api.get_obj(10))
 
+    def test_delete_obj(self):
+        """
+        The delete_obj method should just call .delete() on the object.
+        """
+        request = testing.DummyRequest()
+        api = MockModelApi(request)
+        obj = Mock()
+
+        api.delete_obj(obj)
+
+        obj.delete.assert_called_with()
+
+    def test_save_obj(self):
+        """
+        The save_obj method should just call .save() on the object.
+        """
+        request = testing.DummyRequest()
+        api = MockModelApi(request)
+        obj = Mock()
+
+        api.save_obj(obj)
+
+        obj.save.assert_called_with()
+
     def test_dehydrate(self):
         """
         Checks that the dehydrate method calls model.serialize()
