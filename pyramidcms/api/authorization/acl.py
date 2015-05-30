@@ -1,6 +1,7 @@
 from pyramid.httpexceptions import HTTPForbidden
 
 from .base import Authorization
+from pyramidcms.core.messages import NOT_AUTHORIZED
 
 
 class ACLAuthorization(Authorization):
@@ -25,46 +26,46 @@ class ACLAuthorization(Authorization):
         if bundle.request.has_permission(self.permission('read', bundle)):
             return obj_list
         else:
-            raise HTTPForbidden()
+            raise HTTPForbidden(NOT_AUTHORIZED)
 
     def read_detail(self, obj, bundle):
         if bundle.request.has_permission(self.permission('read', bundle)):
             return True
         else:
-            raise HTTPForbidden()
+            raise HTTPForbidden(NOT_AUTHORIZED)
 
     def create_list(self, obj_list, bundle):
         if bundle.request.has_permission(self.permission('create', bundle)):
             return obj_list
         else:
-            raise HTTPForbidden()
+            raise HTTPForbidden(NOT_AUTHORIZED)
 
     def create_detail(self, obj, bundle):
         if bundle.request.has_permission(self.permission('create', bundle)):
             return True
         else:
-            raise HTTPForbidden()
+            raise HTTPForbidden(NOT_AUTHORIZED)
 
     def update_list(self, obj_list, bundle):
         if bundle.request.has_permission(self.permission('update', bundle)):
             return obj_list
         else:
-            raise HTTPForbidden()
+            raise HTTPForbidden(NOT_AUTHORIZED)
 
     def update_detail(self, obj, bundle):
         if bundle.request.has_permission(self.permission('update', bundle)):
             return True
         else:
-            raise HTTPForbidden()
+            raise HTTPForbidden(NOT_AUTHORIZED)
 
     def delete_list(self, obj_list, bundle):
         if bundle.request.has_permission(self.permission('delete', bundle)):
             return obj_list
         else:
-            raise HTTPForbidden()
+            raise HTTPForbidden(NOT_AUTHORIZED)
 
     def delete_detail(self, obj, bundle):
         if bundle.request.has_permission(self.permission('delete', bundle)):
             return True
         else:
-            raise HTTPForbidden()
+            raise HTTPForbidden(NOT_AUTHORIZED)

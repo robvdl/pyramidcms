@@ -7,6 +7,7 @@ from pyramidcms.api.authentication import Authentication
 from pyramidcms.api.authorization import ReadOnlyAuthorization
 from pyramidcms.core.paginator import Paginator
 from pyramidcms.core.exceptions import InvalidPage
+from pyramidcms.core.messages import NOT_AUTHORIZED, AUTH_REQUIRED
 from pyramidcms.security import RootFactory
 from .bundle import Bundle
 
@@ -223,9 +224,9 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
                 else:
                     raise HTTPNotFound('Resource {}/{} does not exist'.format(self.api_url, obj_id))
             else:
-                raise HTTPForbidden('Not authorized')
+                raise HTTPForbidden(NOT_AUTHORIZED)
         else:
-            raise HTTPForbidden('Authentication required')
+            raise HTTPForbidden(AUTH_REQUIRED)
 
     def put(self):
         """
@@ -261,9 +262,9 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
                 else:
                     raise HTTPNotFound('Resource {}/{} does not exist'.format(self.api_url, obj_id))
             else:
-                raise HTTPForbidden('Not authorized')
+                raise HTTPForbidden(NOT_AUTHORIZED)
         else:
-            raise HTTPForbidden('Authentication required')
+            raise HTTPForbidden(AUTH_REQUIRED)
 
     def delete(self):
         """
@@ -286,9 +287,9 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
                 else:
                     raise HTTPNotFound('Resource {}/{} does not exist'.format(self.api_url, obj_id))
             else:
-                raise HTTPForbidden('Not authorized')
+                raise HTTPForbidden(NOT_AUTHORIZED)
         else:
-            raise HTTPForbidden('Authentication required')
+            raise HTTPForbidden(AUTH_REQUIRED)
 
     def collection_post(self):
         """
@@ -332,9 +333,9 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
                 else:
                     raise HTTPConflict('Resource {}/{} already exists'.format(self.api_url, obj.id))
             else:
-                raise HTTPForbidden('Not authorized')
+                raise HTTPForbidden(NOT_AUTHORIZED)
         else:
-            raise HTTPForbidden('Authentication required')
+            raise HTTPForbidden(AUTH_REQUIRED)
 
     def collection_get(self):
         """
@@ -372,7 +373,7 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
                 'items': [self.dehydrate_obj(obj) for obj in page.object_list]
             }
         else:
-            raise HTTPForbidden()
+            raise HTTPForbidden(AUTH_REQUIRED)
 
 
 class Api(ApiBase):

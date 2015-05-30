@@ -5,6 +5,7 @@ from pyramid import testing
 from pyramid.httpexceptions import HTTPBadRequest, HTTPForbidden, HTTPNotFound
 
 from pyramidcms.api import ApiBase, Bundle, cms_resource, get_global_acls
+from pyramidcms.core.messages import NOT_AUTHORIZED, AUTH_REQUIRED
 
 
 @cms_resource(resource_name='simple')
@@ -222,7 +223,7 @@ class ApiBaseTest(TestCase):
         api = NumberApi(request)
         api.get_obj = Mock(return_value=None)
 
-        with self.assertRaises(HTTPNotFound):
+        with self.assertRaisesRegex(HTTPNotFound, 'Resource /api/number/10 does not exist'):
             api.get()
 
     def test_get__authorization(self):
@@ -239,13 +240,16 @@ class ApiBaseTest(TestCase):
 
         # read_detail can return False for unauthorized
         auth_mock.read_detail.return_value = False
-        with self.assertRaises(HTTPForbidden):
+        with self.assertRaisesRegex(HTTPForbidden, NOT_AUTHORIZED):
             api.get()
 
         # read_detail can also raise HTTPForbidden itself
         # reset return value first...
         auth_mock.read_detail.return_value = Mock()
         auth_mock.read_detail.side_effect = HTTPForbidden
+
+        # don't check the exception message, as we can't set it in a test,
+        # if the exception is raised using side_effect.
         with self.assertRaises(HTTPForbidden):
             api.get()
 
@@ -263,12 +267,15 @@ class ApiBaseTest(TestCase):
 
         # is_authenticated returns False
         auth_mock.is_authenticated.return_value = False
-        with self.assertRaises(HTTPForbidden):
+        with self.assertRaisesRegex(HTTPForbidden, AUTH_REQUIRED):
             api.get()
 
         # is_authenticated raises HTTPForbidden
         auth_mock.is_authenticated.return_value = Mock()
         auth_mock.is_authenticated.side_effect = HTTPForbidden
+
+        # don't check the exception message, as we can't set it in a test,
+        # if the exception is raised using side_effect.
         with self.assertRaises(HTTPForbidden):
             api.get()
 
@@ -372,6 +379,8 @@ class ApiBaseTest(TestCase):
         auth_mock.read_list.side_effect = HTTPForbidden
         api._meta.authorization = auth_mock
 
+        # don't check the exception message, as we can't set it in a test,
+        # if the exception is raised using side_effect.
         with self.assertRaises(HTTPForbidden):
             api.collection_get()
 
@@ -387,11 +396,13 @@ class ApiBaseTest(TestCase):
 
         # authentication usually returns False
         auth_mock.is_authenticated.return_value = False
-        with self.assertRaises(HTTPForbidden):
+        with self.assertRaisesRegex(HTTPForbidden, AUTH_REQUIRED):
             api.collection_get()
 
         # authentication could also raise HTTPForbidden directly
         auth_mock.is_authenticated.return_value = Mock()
         auth_mock.is_authenticated.side_effect = HTTPForbidden
+
+        # don't check the exception message, as we can't set it in a test
         with self.assertRaises(HTTPForbidden):
             api.collection_get()
