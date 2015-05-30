@@ -136,7 +136,7 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
         This method filters the objects coming from the :meth:`get_obj_list()`
         method using the authorization class read_list() method.
         """
-        base_bundle = self.build_bundle(request=self.request)
+        base_bundle = self.build_bundle()
         return self._meta.authorization.read_list(self.get_obj_list(), base_bundle)
 
     def get_obj_list(self):
@@ -159,7 +159,7 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
         """
         Dehydrate an object, builds a bundle first.
         """
-        bundle = self.build_bundle(obj=obj, request=self.request)
+        bundle = self.build_bundle(obj=obj)
         return self.dehydrate(bundle).obj
 
     def dehydrate(self, bundle):
@@ -186,7 +186,7 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
         """
         return bundle
 
-    def build_bundle(self, obj=None, data=None, request=None):
+    def build_bundle(self, obj=None, data=None):
         """
         Given either an object, a data dictionary or both, builds a ``Bundle``
         for use throughout the ``dehydrate/hydrate`` cycle.
@@ -201,7 +201,7 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
         return Bundle(
             obj=obj,
             data=data,
-            request=request,
+            request=self.request,
             resource=self
         )
 
@@ -213,7 +213,7 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
             # get the object to view
             obj_id = self.request.matchdict['id']
             obj = self.get_obj(obj_id)
-            bundle = self.build_bundle(obj=obj, request=self.request)
+            bundle = self.build_bundle(obj=obj)
 
             # check if we have read access to this object first
             if self._meta.authorization.read_detail(obj, bundle):
@@ -241,7 +241,7 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
             # get the current object to update, build a bundle with the data
             obj_id = self.request.matchdict['id']
             obj = self.get_obj(obj_id)
-            bundle = self.build_bundle(obj=obj, data=data, request=self.request)
+            bundle = self.build_bundle(obj=obj, data=data)
 
             # now we can check if we are allowed to update this object
             if self._meta.authorization.update_detail(obj, bundle):
@@ -273,7 +273,7 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
             # get the current object to delete
             obj_id = self.request.matchdict['id']
             obj = self.get_obj(obj_id)
-            bundle = self.build_bundle(obj=obj, request=self.request)
+            bundle = self.build_bundle(obj=obj)
 
             # now we can check if we are allowed to delete this object
             if self._meta.authorization.delete_detail(obj, bundle):
@@ -311,7 +311,7 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
                 obj = None
 
             # create bundle based on data, obj should be None unless it exists
-            bundle = self.build_bundle(obj=obj, data=data, request=self.request)
+            bundle = self.build_bundle(obj=obj, data=data)
 
             # check if we are allowed to create objects for this resource
             if self._meta.authorization.create_list(bundle.obj, bundle):

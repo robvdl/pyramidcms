@@ -96,7 +96,7 @@ class ApiBaseTest(TestCase):
 
     def test_get_obj_list(self):
         """
-        Method should raise NotImplementedError.
+        Method should raise NotImplementedError in the ApiBase class.
         """
         request = testing.DummyRequest()
 
@@ -107,7 +107,7 @@ class ApiBaseTest(TestCase):
 
     def test_get_obj(self):
         """
-        Method should raise NotImplementedError.
+        Method should raise NotImplementedError in the ApiBase class.
         """
         request = testing.DummyRequest()
 
@@ -115,6 +115,64 @@ class ApiBaseTest(TestCase):
         api = ApiBase(request)
         with self.assertRaises(NotImplementedError):
             api.get_obj(1)
+
+    def test_delete_obj(self):
+        """
+        Method should raise NotImplementedError in the ApiBase class.
+        """
+        request = testing.DummyRequest()
+        obj = Mock()
+
+        # create a direct instance of ApiBase
+        api = ApiBase(request)
+        with self.assertRaises(NotImplementedError):
+            api.delete_obj(obj)
+
+    def test_save_obj(self):
+        """
+        Method should raise NotImplementedError in the ApiBase class.
+        """
+        request = testing.DummyRequest()
+        obj = Mock()
+
+        # create a direct instance of ApiBase
+        api = ApiBase(request)
+        with self.assertRaises(NotImplementedError):
+            api.save_obj(obj)
+
+    def test_build_bundle(self):
+        """
+        When build_bundle is called without an obj, it should construct
+        bundle.obj using the class defined in _meta.object_class.
+        """
+        # some test data
+        request = testing.DummyRequest()
+        data = {'id': 1, 'name': 'admin'}
+
+        # back up the current object_class variable, this is needed because
+        # the ._meta property is on the ApiBase class, not on the instance.
+        backup_object_class = ApiBase._meta.object_class
+
+        # calling build_bundle with an object
+        obj = Mock()
+        api = ApiBase(request)
+        bundle = api.build_bundle(obj=obj, data=data)
+        self.assertEqual(bundle.resource, api)
+        self.assertEqual(bundle.request, request)
+        self.assertEqual(bundle.data, data)
+        self.assertEqual(bundle.obj, obj)   # should use obj
+
+        # calling build_bundle without an object
+        mock_class = Mock()
+        ApiBase._meta.object_class = mock_class
+        bundle = api.build_bundle(data=data)
+        self.assertEqual(bundle.resource, api)
+        self.assertEqual(bundle.request, request)
+        self.assertEqual(bundle.data, data)
+        self.assertTrue(mock_class.called)  # a new object_class is constructed
+
+        # restore object_class so it doesn't affect other tests.
+        ApiBase._meta.object_class = backup_object_class
 
     def test_hydrate(self):
         """
