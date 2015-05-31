@@ -420,15 +420,15 @@ class ApiBaseTest(TestCase):
         auth_mock = Mock()
         api._meta.authorization = auth_mock
 
-        # delete_detail can return False for unauthorized
+        # update_detail can return False for unauthorized
         auth_mock.update_detail.return_value = False
         with self.assertRaisesRegex(HTTPForbidden, NOT_AUTHORIZED):
             api.put()
 
-        # delete_detail can also raise HTTPForbidden itself
+        # update_detail can also raise HTTPForbidden itself
         # reset return value first...
-        auth_mock.delete_detail.return_value = Mock()
-        auth_mock.delete_detail.side_effect = HTTPForbidden
+        auth_mock.update_detail.return_value = Mock()
+        auth_mock.update_detail.side_effect = HTTPForbidden
 
         # don't check the exception message, as we can't set it in a test,
         # if the exception is raised using side_effect.
