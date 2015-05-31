@@ -33,3 +33,15 @@ class ApiTests(TestCase):
         get_obj_list() is stubbed.
         """
         self.assertListEqual(self.api.get_obj_list(), [])
+
+    def test_delete_obj(self):
+        """
+        This method does noting.
+        """
+        self.api.delete_obj({})
+
+    def test_save_obj(self):
+        """
+        This method does noting.
+        """
+        self.api.save_obj({})

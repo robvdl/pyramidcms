@@ -1,5 +1,5 @@
 from unittest import TestCase
-from unittest.mock import patch, Mock, MagicMock
+from unittest.mock import patch, Mock, MagicMock, PropertyMock
 
 from pyramid import testing
 from pyramid.httpexceptions import HTTPBadRequest, HTTPForbidden, HTTPNotFound
@@ -389,6 +389,27 @@ class ApiBaseTest(TestCase):
         response = api.put()
         save_mock.assert_called_once_with(10)
         self.assertEqual(response.status_code, 204)
+
+    def test_put__invalid_json(self):
+        """
+        When invalid json data is sent to the API put method, a 400
+        bad request should be raised.
+        """
+        # a property needs to be created on the class, must be cleaned up later
+        testing.DummyRequest.json_body = PropertyMock(side_effect=ValueError)
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 10}
+
+        api = NumberApi(request)
+        save_mock = Mock()
+        api.save_obj = save_mock
+
+        # if request.json_body raises a ValueError, we get a BadRequest
+        with self.assertRaises(HTTPBadRequest):
+            api.put()
+
+        # must not forget to remove our property for other tests
+        delattr(testing.DummyRequest, 'json_body')
 
     def test_put__notfound(self):
         """
