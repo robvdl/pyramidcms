@@ -56,6 +56,7 @@ class ApiBaseTest(TestCase):
         self.backup_authorization = NumberApi._meta.authorization
         self.backup_authentication = NumberApi._meta.authentication
         self.backup_paginator = NumberApi._meta.paginator_class
+        self.backup_always_return_data = NumberApi._meta.always_return_data
 
     def tearDown(self):
         """
@@ -64,6 +65,7 @@ class ApiBaseTest(TestCase):
         NumberApi._meta.authorization = self.backup_authorization
         NumberApi._meta.authentication = self.backup_authentication
         NumberApi._meta.paginator_class = self.backup_paginator
+        NumberApi._meta.always_return_data = self.backup_always_return_data
 
     @patch('pyramidcms.api.RootFactory')
     def test_get_global_acls(self, mock_root_factory):
@@ -389,6 +391,28 @@ class ApiBaseTest(TestCase):
         response = api.put()
         save_mock.assert_called_once_with(10)
         self.assertEqual(response.status_code, 204)
+
+    def test_put__always_return_data(self):
+        """
+        Tests that if always_return_data is set on the API Meta class,
+        that we get the dehydrated bundle back from the API, rather than
+        just a status code of 204.
+        """
+        # some test data to update
+        data = {'name': 'admin'}
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 10}
+        request.json_body = data
+        api = NumberApi(request)
+        api._meta.always_return_data = True
+        save_mock = Mock()
+        api.save_obj = save_mock
+
+        return_data = api.put()
+
+        # return_data is using dehydrate, defined in the NumberApi class.
+        self.assertDictEqual(return_data, {'number': 10})
+        save_mock.assert_called_once_with(10)
 
     def test_put__invalid_json(self):
         """
