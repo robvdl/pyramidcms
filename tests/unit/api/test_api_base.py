@@ -5,6 +5,7 @@ from pyramid import testing
 from pyramid.httpexceptions import HTTPBadRequest, HTTPForbidden, HTTPNotFound
 
 from pyramidcms.api import ApiBase, Bundle, cms_resource, get_global_acls
+from pyramidcms.api.authorization import Authorization
 from pyramidcms.core.messages import NOT_AUTHORIZED, AUTH_REQUIRED
 
 
@@ -26,6 +27,7 @@ class NumberApi(ApiBase):
 
     class Meta:
         limit = 10
+        authorization = Authorization()
 
     def get_obj_list(self):
         return range(1000)
@@ -223,13 +225,12 @@ class ApiBaseTest(TestCase):
         api = NumberApi(request)
         api.get_obj = Mock(return_value=None)
 
-        with self.assertRaisesRegex(HTTPNotFound, 'Resource /api/number/10 does not exist'):
+        with self.assertRaises(HTTPNotFound):
             api.get()
 
     def test_get__authorization(self):
         """
-        Test BaseApi.get() when API Authorization returns unauthorized,
-        the get() method should raise HTTPForbidden.
+        Tests if the BaseApi.get() method has implemented authorization.
         """
         request = testing.DummyRequest()
         request.matchdict = {'id': 10}
@@ -255,8 +256,7 @@ class ApiBaseTest(TestCase):
 
     def test_get__authentication(self):
         """
-        Test BaseApi.get() when API Authentication class returns unauthorized,
-        the get() method should raise HTTPForbidden.
+        Tests if the BaseApi.get() method has implemented authentication.
         """
         request = testing.DummyRequest()
         request.matchdict = {'id': 10}
@@ -278,6 +278,85 @@ class ApiBaseTest(TestCase):
         # if the exception is raised using side_effect.
         with self.assertRaises(HTTPForbidden):
             api.get()
+
+    def test_delete__success(self):
+        """
+        Tests the success condition of the the BaseApi.delete() method,
+        which is the DELETE endpoint for a resource.
+        """
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 10}
+        api = NumberApi(request)
+        delete_mock = Mock()
+        api.delete_obj = delete_mock
+
+        response = api.delete()
+        delete_mock.assert_called_once_with(10)
+        self.assertEqual(response.status_code, 204)
+
+    def test_delete__notfound(self):
+        """
+        When deleting an item that doesnt' exist, the API should
+        raise HTTPNotFound.
+        """
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 10}
+        api = NumberApi(request)
+        api.get_obj = Mock(return_value=None)
+
+        with self.assertRaises(HTTPNotFound):
+            api.delete()
+
+    def test_delete__authorization(self):
+        """
+        Tests if the BaseApi.delete() method has implemented authorization.
+        """
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 10}
+        api = NumberApi(request)
+
+        auth_mock = Mock()
+        api._meta.authorization = auth_mock
+
+        # delete_detail can return False for unauthorized
+        auth_mock.delete_detail.return_value = False
+        with self.assertRaisesRegex(HTTPForbidden, NOT_AUTHORIZED):
+            api.delete()
+
+        # delete_detail can also raise HTTPForbidden itself
+        # reset return value first...
+        auth_mock.delete_detail.return_value = Mock()
+        auth_mock.delete_detail.side_effect = HTTPForbidden
+
+        # don't check the exception message, as we can't set it in a test,
+        # if the exception is raised using side_effect.
+        with self.assertRaises(HTTPForbidden):
+            api.delete()
+
+    def test_delete__authentication(self):
+        """
+        Tests if the BaseApi.delete() method has implemented authentication.
+        """
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 10}
+        api = NumberApi(request)
+
+        auth_mock = Mock()
+        api._meta.authentication = auth_mock
+
+        # is_authenticated returns False
+        auth_mock.is_authenticated.return_value = False
+        with self.assertRaisesRegex(HTTPForbidden, AUTH_REQUIRED):
+            api.delete()
+
+        # is_authenticated raises HTTPForbidden
+        auth_mock.is_authenticated.return_value = Mock()
+        auth_mock.is_authenticated.side_effect = HTTPForbidden
+
+        # don't check the exception message, as we can't set it in a test,
+        # if the exception is raised using side_effect.
+        with self.assertRaises(HTTPForbidden):
+            api.delete()
 
     def test_paginator_class(self):
         """
