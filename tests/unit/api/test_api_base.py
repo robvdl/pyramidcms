@@ -6,7 +6,7 @@ from pyramid.httpexceptions import HTTPBadRequest, HTTPForbidden, HTTPNotFound
 
 from pyramidcms.api import ApiBase, Bundle, cms_resource, get_global_acls
 from pyramidcms.api.authorization import Authorization
-from pyramidcms.core.messages import NOT_AUTHORIZED, AUTH_REQUIRED
+from pyramidcms.core.messages import NOT_AUTHORIZED, NOT_AUTHENTICATED
 
 
 @cms_resource(resource_name='simple')
@@ -267,7 +267,7 @@ class ApiBaseTest(TestCase):
 
         # is_authenticated returns False
         auth_mock.is_authenticated.return_value = False
-        with self.assertRaisesRegex(HTTPForbidden, AUTH_REQUIRED):
+        with self.assertRaisesRegex(HTTPForbidden, NOT_AUTHENTICATED):
             api.get()
 
         # is_authenticated raises HTTPForbidden
@@ -346,7 +346,7 @@ class ApiBaseTest(TestCase):
 
         # is_authenticated returns False
         auth_mock.is_authenticated.return_value = False
-        with self.assertRaisesRegex(HTTPForbidden, AUTH_REQUIRED):
+        with self.assertRaisesRegex(HTTPForbidden, NOT_AUTHENTICATED):
             api.delete()
 
         # is_authenticated raises HTTPForbidden
@@ -475,7 +475,7 @@ class ApiBaseTest(TestCase):
 
         # authentication usually returns False
         auth_mock.is_authenticated.return_value = False
-        with self.assertRaisesRegex(HTTPForbidden, AUTH_REQUIRED):
+        with self.assertRaisesRegex(HTTPForbidden, NOT_AUTHENTICATED):
             api.collection_get()
 
         # authentication could also raise HTTPForbidden directly
