@@ -97,6 +97,20 @@ class ApiBaseTest(TestCase):
         self.assertEqual(api.resource_name, 'number')
         self.assertEqual(api._meta.limit, 10)
 
+    def test_paginator_class(self):
+        """
+        This tests if the correct paginator class from the Meta
+        class was used, this can be tested using a MagicMock.
+        """
+        request = testing.DummyRequest()
+        api = NumberApi(request)
+
+        mock_paginator = MagicMock()
+        api._meta.paginator_class = mock_paginator
+
+        api.paginator.page(1)
+        self.assertTrue(mock_paginator.called)
+
     def test_get_obj_list(self):
         """
         Method should raise NotImplementedError in the ApiBase class.
@@ -358,19 +372,96 @@ class ApiBaseTest(TestCase):
         with self.assertRaises(HTTPForbidden):
             api.delete()
 
-    def test_paginator_class(self):
+    def test_put__success(self):
         """
-        This tests if the correct paginator class from the Meta
-        class was used, this can be tested using a MagicMock.
+        Tests the success condition of the the BaseApi.put() method,
+        which is the PUT endpoint for a resource.
         """
+        # some test data to update
+        data = {'name': 'admin'}
         request = testing.DummyRequest()
+        request.matchdict = {'id': 10}
+        request.json_body = data
+        api = NumberApi(request)
+        save_mock = Mock()
+        api.save_obj = save_mock
+
+        response = api.put()
+        save_mock.assert_called_once_with(10)
+        self.assertEqual(response.status_code, 204)
+
+    def test_put__notfound(self):
+        """
+        When updating an item that doesnt' exist, the API should
+        raise HTTPNotFound.
+        """
+        # some test data to update
+        data = {'name': 'admin'}
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 10}
+        request.json_body = data
+        api = NumberApi(request)
+        api.get_obj = Mock(return_value=None)
+
+        with self.assertRaises(HTTPNotFound):
+            api.put()
+
+    def test_put__authorization(self):
+        """
+        Tests if the BaseApi.put() method has implemented authorization.
+        """
+        # some test data to update
+        data = {'name': 'admin'}
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 10}
+        request.json_body = data
         api = NumberApi(request)
 
-        mock_paginator = MagicMock()
-        api._meta.paginator_class = mock_paginator
+        auth_mock = Mock()
+        api._meta.authorization = auth_mock
 
-        api.paginator.page(1)
-        self.assertTrue(mock_paginator.called)
+        # delete_detail can return False for unauthorized
+        auth_mock.update_detail.return_value = False
+        with self.assertRaisesRegex(HTTPForbidden, NOT_AUTHORIZED):
+            api.put()
+
+        # delete_detail can also raise HTTPForbidden itself
+        # reset return value first...
+        auth_mock.delete_detail.return_value = Mock()
+        auth_mock.delete_detail.side_effect = HTTPForbidden
+
+        # don't check the exception message, as we can't set it in a test,
+        # if the exception is raised using side_effect.
+        with self.assertRaises(HTTPForbidden):
+            api.put()
+
+    def test_put__authentication(self):
+        """
+        Tests if the BaseApi.put() method has implemented authentication.
+        """
+        # some test data to update
+        data = {'name': 'admin'}
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 10}
+        request.json_body = data
+        api = NumberApi(request)
+
+        auth_mock = Mock()
+        api._meta.authentication = auth_mock
+
+        # is_authenticated returns False
+        auth_mock.is_authenticated.return_value = False
+        with self.assertRaisesRegex(HTTPForbidden, NOT_AUTHENTICATED):
+            api.put()
+
+        # is_authenticated raises HTTPForbidden
+        auth_mock.is_authenticated.return_value = Mock()
+        auth_mock.is_authenticated.side_effect = HTTPForbidden
+
+        # don't check the exception message, as we can't set it in a test,
+        # if the exception is raised using side_effect.
+        with self.assertRaises(HTTPForbidden):
+            api.put()
 
     def test_collection_get(self):
         """
