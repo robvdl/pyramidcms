@@ -14,4 +14,4 @@ class Bundle(object):
         self.resource = resource
 
     def __repr__(self):
-        return "<Bundle for obj: '{}' and with data: '{}'>".format(self.obj, self.data)
+        return "<Bundle for obj: '{}' and with data: {}>".format(self.obj, self.data)

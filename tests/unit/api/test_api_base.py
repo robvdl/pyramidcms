@@ -638,6 +638,63 @@ class ApiBaseTest(TestCase):
         # must not forget to remove our property for other tests
         delattr(testing.DummyRequest, 'json_body')
 
+    def test_collection_post__authorization(self):
+        """
+        Tests if the BaseApi.collection_post() method has implemented
+        authorization.
+        """
+        # some test data to update
+        data = {'name': 'admin'}
+        request = testing.DummyRequest()
+        request.json_body = data
+        api = NumberApi(request)
+
+        auth_mock = Mock()
+        api._meta.authorization = auth_mock
+
+        # create_detail can return False for unauthorized
+        auth_mock.create_detail.return_value = False
+        with self.assertRaisesRegex(HTTPForbidden, NOT_AUTHORIZED):
+            api.collection_post()
+
+        # create_detail can also raise HTTPForbidden itself
+        # reset return value first...
+        auth_mock.create_detail.return_value = Mock()
+        auth_mock.create_detail.side_effect = HTTPForbidden
+
+        # don't check the exception message, as we can't set it in a test,
+        # if the exception is raised using side_effect.
+        with self.assertRaises(HTTPForbidden):
+            api.collection_post()
+
+    def test_collection_post__authentication(self):
+        """
+        Tests if the BaseApi.collection_post() method has implemented
+        authentication.
+        """
+        # some test data to update
+        data = {'name': 'admin'}
+        request = testing.DummyRequest()
+        request.json_body = data
+        api = NumberApi(request)
+
+        auth_mock = Mock()
+        api._meta.authentication = auth_mock
+
+        # is_authenticated returns False
+        auth_mock.is_authenticated.return_value = False
+        with self.assertRaisesRegex(HTTPForbidden, NOT_AUTHENTICATED):
+            api.collection_post()
+
+        # is_authenticated raises HTTPForbidden
+        auth_mock.is_authenticated.return_value = Mock()
+        auth_mock.is_authenticated.side_effect = HTTPForbidden
+
+        # don't check the exception message, as we can't set it in a test,
+        # if the exception is raised using side_effect.
+        with self.assertRaises(HTTPForbidden):
+            api.collection_post()
+
     def test_collection_get__success(self):
         """
         Tests the API collection_get method, which returns a list of items.
