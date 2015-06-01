@@ -230,6 +230,7 @@ class ApiBaseTest(TestCase):
         request = testing.DummyRequest()
         request.matchdict = {'id': 10}
         api = NumberApi(request)
+
         self.assertEqual(api.get(), {'number': 10})
 
     def test_get__notfound(self):
@@ -317,6 +318,7 @@ class ApiBaseTest(TestCase):
         """
         request = testing.DummyRequest()
         request.matchdict = {'id': 10}
+
         api = NumberApi(request)
         api.get_obj = Mock(return_value=None)
 
@@ -329,8 +331,8 @@ class ApiBaseTest(TestCase):
         """
         request = testing.DummyRequest()
         request.matchdict = {'id': 10}
-        api = NumberApi(request)
 
+        api = NumberApi(request)
         auth_mock = Mock()
         api._meta.authorization = auth_mock
 
@@ -384,11 +386,13 @@ class ApiBaseTest(TestCase):
         request = testing.DummyRequest()
         request.matchdict = {'id': 10}
         request.json_body = data
+
         api = NumberApi(request)
         save_mock = Mock()
         api.save_obj = save_mock
 
         response = api.put()
+
         save_mock.assert_called_once_with(10)
         self.assertEqual(response.status_code, 204)
 
@@ -403,6 +407,7 @@ class ApiBaseTest(TestCase):
         request = testing.DummyRequest()
         request.matchdict = {'id': 10}
         request.json_body = data
+
         api = NumberApi(request)
         api._meta.always_return_data = True
         save_mock = Mock()
@@ -508,7 +513,7 @@ class ApiBaseTest(TestCase):
         with self.assertRaises(HTTPForbidden):
             api.put()
 
-    def test_collection_get(self):
+    def test_collection_get__success(self):
         """
         Tests the API collection_get method, which returns a list of items.
         """

@@ -315,7 +315,7 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
             bundle = self.build_bundle(obj=obj, data=data)
 
             # check if we are allowed to create objects for this resource
-            if self._meta.authorization.create_list(bundle.obj, bundle):
+            if self._meta.authorization.create_detail(bundle.obj, bundle):
                 # we need to check if the object exists (if data has an id)
                 if obj is None:
                     # hydrate and save the object
