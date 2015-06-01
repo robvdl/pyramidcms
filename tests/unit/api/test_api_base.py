@@ -2,7 +2,8 @@ from unittest import TestCase
 from unittest.mock import patch, Mock, MagicMock, PropertyMock
 
 from pyramid import testing
-from pyramid.httpexceptions import HTTPBadRequest, HTTPForbidden, HTTPNotFound
+from pyramid.httpexceptions import HTTPBadRequest, HTTPForbidden, HTTPNotFound,\
+    HTTPConflict
 
 from pyramidcms.api import ApiBase, Bundle, cms_resource, get_global_acls
 from pyramidcms.api.authorization import Authorization
@@ -15,7 +16,12 @@ class MockObject(object):
     """
 
     def __init__(self, data):
-        self.id = data['id']
+        # adding an id is used by API POST test, this wouldn't normally happen
+        if 'id' not in data:
+            data['id'] = 10
+
+        for key, val in data.items():
+            setattr(self, key, val)
 
 
 @cms_resource(resource_name='simple')
@@ -46,13 +52,11 @@ class NumberApi(ApiBase):
 
     def dehydrate(self, bundle):
         bundle.data = {'id': bundle.obj.id}
+        if hasattr(bundle.obj, 'name'):
+            bundle.data['name'] = bundle.obj.name
         return bundle
 
     def hydrate(self, bundle):
-        # adding an id is used by API POST test, this wouldn't normally happen
-        if 'id' not in bundle.data:
-            bundle.data['id'] = 10
-
         bundle.obj = MockObject(bundle.data)
         return bundle
 
@@ -433,7 +437,7 @@ class ApiBaseTest(TestCase):
         return_data = api.put()
 
         # return_data is using dehydrate, defined in the NumberApi class.
-        self.assertDictEqual(return_data, {'id': 10})
+        self.assertDictEqual(return_data, {'id': 10, 'name': 'admin'})
         self.assertTrue(save_mock.called)
 
     def test_put__invalid_json(self):
@@ -549,6 +553,90 @@ class ApiBaseTest(TestCase):
         # save_mock should be called using bundle.obj returned from hydrate
         self.assertTrue(save_mock.called)
         self.assertEqual(response.status_code, 201)
+
+    def test_collection_post__with_id__success(self):
+        """
+        Tests the API collection_post method also works if we pass an
+        id with the data and an object with that id does not exist yet.
+        """
+        # test data to create object
+        data = {'id': 10, 'name': 'admin'}
+        request = testing.DummyRequest()
+        request.json_body = data
+
+        api = NumberApi(request)
+        save_mock = Mock()
+        get_mock = Mock(return_value=None)  # obj with this id does not exist
+        api.save_obj = save_mock
+        api.get_obj = get_mock
+
+        response = api.collection_post()
+
+        # save_mock should be called using bundle.obj returned from hydrate
+        self.assertTrue(save_mock.called)
+        self.assertEqual(response.status_code, 201)
+
+    def test_collection_post__with_id__exists(self):
+        """
+        Tests the API collection_post method will raise a 209 Conflict,
+        if the object already exists and we are trying to create an object
+        by specifying the id we want.
+        """
+        # test data to create object
+        data = {'id': 10, 'name': 'admin'}
+        request = testing.DummyRequest()
+        request.json_body = data
+
+        api = NumberApi(request)
+        save_mock = Mock()
+        get_mock = Mock(return_value=MockObject({'id': 10}))  # return same id
+        api.save_obj = save_mock
+        api.get_obj = get_mock
+
+        with self.assertRaisesRegex(HTTPConflict, 'Resource /api/number/10 already exists'):
+            api.collection_post()
+
+    def test_post__always_return_data(self):
+        """
+        Tests that if always_return_data is set on the API Meta class,
+        that we get the dehydrated bundle back from the API, rather than
+        just a status code of 201.
+        """
+        # test data to create object
+        data = {'name': 'admin'}
+        request = testing.DummyRequest()
+        request.json_body = data
+
+        api = NumberApi(request)
+        api._meta.always_return_data = True
+        save_mock = Mock()
+        api.save_obj = save_mock
+
+        return_data = api.collection_post()
+
+        # return_data is using dehydrate, defined in the NumberApi class.
+        self.assertDictEqual(return_data, {'id': 10, 'name': 'admin'})
+        self.assertTrue(save_mock.called)
+
+    def test_collection_post__invalid_json(self):
+        """
+        When invalid json data is sent to the API collection_post method, a 400
+        bad request should be raised.
+        """
+        # a property needs to be created on the class, must be cleaned up later
+        testing.DummyRequest.json_body = PropertyMock(side_effect=ValueError)
+        request = testing.DummyRequest()
+
+        api = NumberApi(request)
+        save_mock = Mock()
+        api.save_obj = save_mock
+
+        # if request.json_body raises a ValueError, we get a BadRequest
+        with self.assertRaises(HTTPBadRequest):
+            api.collection_post()
+
+        # must not forget to remove our property for other tests
+        delattr(testing.DummyRequest, 'json_body')
 
     def test_collection_get__success(self):
         """
