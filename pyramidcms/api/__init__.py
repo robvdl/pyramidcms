@@ -7,7 +7,8 @@ from pyramidcms.api.authentication import Authentication
 from pyramidcms.api.authorization import ReadOnlyAuthorization
 from pyramidcms.core.paginator import Paginator
 from pyramidcms.core.exceptions import InvalidPage
-from pyramidcms.core.messages import NOT_AUTHORIZED, NOT_AUTHENTICATED
+from pyramidcms.core.messages import NOT_AUTHORIZED, NOT_AUTHENTICATED,\
+    INVALID_JSON, RESOURCE_NOTFOUND, RESOURCE_EXISTS, INVALID_PAGE
 from pyramidcms.security import RootFactory
 from .bundle import Bundle
 
@@ -228,7 +229,7 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
                     bundle = self.dehydrate(bundle)
                     return bundle.data
                 else:
-                    raise HTTPNotFound('Resource {} does not exist'.format(self.get_obj_url(obj_id)))
+                    raise HTTPNotFound(RESOURCE_NOTFOUND.format(self.get_obj_url(obj_id)))
             else:
                 raise HTTPForbidden(NOT_AUTHORIZED)
         else:
@@ -239,14 +240,14 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
         API endpoint for update resource (update-detail).
 
         Note that TastyPie will actually create the object if it didn't
-        exist first, we don't do this and return a HTTPNotFound instead.
+        exist first, we don't do this and return HTTPNotFound instead.
         """
         if self._meta.authentication.is_authenticated(self.request):
             # check if we have valid JSON data first
             try:
                 data = self.request.json_body
             except ValueError:
-                raise HTTPBadRequest('Invalid JSON data')
+                raise HTTPBadRequest(INVALID_JSON)
 
             # get the current object to update, build a bundle with the data
             obj_id = self.request.matchdict['id']
@@ -269,7 +270,7 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
                         # returns 204 no content
                         return HTTPNoContent()
                 else:
-                    raise HTTPNotFound('Resource {} does not exist'.format(self.get_obj_url(obj_id)))
+                    raise HTTPNotFound(RESOURCE_NOTFOUND.format(self.get_obj_url(obj_id)))
             else:
                 raise HTTPForbidden(NOT_AUTHORIZED)
         else:
@@ -294,7 +295,7 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
                     # returns 204 no content
                     return HTTPNoContent()
                 else:
-                    raise HTTPNotFound('Resource {} does not exist'.format(self.get_obj_url(obj_id)))
+                    raise HTTPNotFound(RESOURCE_NOTFOUND.format(self.get_obj_url(obj_id)))
             else:
                 raise HTTPForbidden(NOT_AUTHORIZED)
         else:
@@ -312,7 +313,7 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
             try:
                 data = self.request.json_body
             except ValueError:
-                raise HTTPBadRequest('Invalid JSON data')
+                raise HTTPBadRequest(INVALID_JSON)
 
             # if there is an id, fetch the object so we can check if it exists.
             if 'id' in data:
@@ -340,7 +341,7 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
                         # returns 201 created
                         return HTTPCreated(location=self.get_obj_url(bundle.obj.id))
                 else:
-                    raise HTTPConflict('Resource {} already exists'.format(self.get_obj_url(obj.id)))
+                    raise HTTPConflict(RESOURCE_EXISTS.format(self.get_obj_url(obj.id)))
             else:
                 raise HTTPForbidden(NOT_AUTHORIZED)
         else:
@@ -356,7 +357,7 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
                 page_number = int(self.request.GET.get('page', 1))
                 page = self.paginator.page(page_number)
             except (ValueError, InvalidPage):
-                raise HTTPBadRequest('Invalid page number')
+                raise HTTPBadRequest(INVALID_PAGE)
 
             if page.has_next():
                 next_page = page.next_page_number()
