@@ -167,7 +167,7 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
         """
         Dehydrate an object, builds a bundle first.
         """
-        bundle = self.build_bundle(obj=obj, request=self.request)
+        bundle = self.build_bundle(obj=obj)
         return self.dehydrate(bundle).obj
 
     def dehydrate(self, bundle):
