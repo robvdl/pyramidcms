@@ -9,6 +9,15 @@ from pyramidcms.api.authorization import Authorization
 from pyramidcms.core.messages import NOT_AUTHORIZED, NOT_AUTHENTICATED
 
 
+class MockObject(object):
+    """
+    A Mock object used by the NumberApi test resource.
+    """
+
+    def __init__(self, data):
+        self.id = data['id']
+
+
 @cms_resource(resource_name='simple')
 class SimpleApi(ApiBase):
     """
@@ -30,13 +39,21 @@ class NumberApi(ApiBase):
         authorization = Authorization()
 
     def get_obj_list(self):
-        return range(1000)
+        return [MockObject({'id': obj_id}) for obj_id in range(1, 1001)]
 
     def get_obj(self, obj_id):
-        return obj_id
+        return MockObject({'id': obj_id})
 
     def dehydrate(self, bundle):
-        bundle.data = {'number': bundle.obj}
+        bundle.data = {'id': bundle.obj.id}
+        return bundle
+
+    def hydrate(self, bundle):
+        # adding an id is used by API POST test, this wouldn't normally happen
+        if 'id' not in bundle.data:
+            bundle.data['id'] = 10
+
+        bundle.obj = MockObject(bundle.data)
         return bundle
 
 
@@ -231,7 +248,7 @@ class ApiBaseTest(TestCase):
         request.matchdict = {'id': 10}
         api = NumberApi(request)
 
-        self.assertEqual(api.get(), {'number': 10})
+        self.assertEqual(api.get(), {'id': 10})
 
     def test_get__notfound(self):
         """
@@ -308,7 +325,7 @@ class ApiBaseTest(TestCase):
         api.delete_obj = delete_mock
 
         response = api.delete()
-        delete_mock.assert_called_once_with(10)
+        self.assertTrue(delete_mock.called)
         self.assertEqual(response.status_code, 204)
 
     def test_delete__notfound(self):
@@ -393,7 +410,7 @@ class ApiBaseTest(TestCase):
 
         response = api.put()
 
-        save_mock.assert_called_once_with(10)
+        self.assertTrue(save_mock.called)
         self.assertEqual(response.status_code, 204)
 
     def test_put__always_return_data(self):
@@ -416,8 +433,8 @@ class ApiBaseTest(TestCase):
         return_data = api.put()
 
         # return_data is using dehydrate, defined in the NumberApi class.
-        self.assertDictEqual(return_data, {'number': 10})
-        save_mock.assert_called_once_with(10)
+        self.assertDictEqual(return_data, {'id': 10})
+        self.assertTrue(save_mock.called)
 
     def test_put__invalid_json(self):
         """
@@ -513,6 +530,26 @@ class ApiBaseTest(TestCase):
         with self.assertRaises(HTTPForbidden):
             api.put()
 
+    def test_collection_post__success(self):
+        """
+        Tests the API collection_post method success condition, which
+        should create a new object.
+        """
+        # test data to create object
+        data = {'name': 'admin'}
+        request = testing.DummyRequest()
+        request.json_body = data
+
+        api = NumberApi(request)
+        save_mock = Mock()
+        api.save_obj = save_mock
+
+        response = api.collection_post()
+
+        # save_mock should be called using bundle.obj returned from hydrate
+        self.assertTrue(save_mock.called)
+        self.assertEqual(response.status_code, 201)
+
     def test_collection_get__success(self):
         """
         Tests the API collection_get method, which returns a list of items.
@@ -574,7 +611,7 @@ class ApiBaseTest(TestCase):
         request = testing.DummyRequest()
 
         # filtered lists can be returned by a more advanced authorization class
-        expected_result = [10, 5, 2]
+        expected_result = [MockObject({'id': obj_id}) for obj_id in [10, 5, 2]]
         api = NumberApi(request)
         auth_mock = MagicMock()
         auth_mock.read_list.return_value = expected_result

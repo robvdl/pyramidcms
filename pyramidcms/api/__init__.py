@@ -132,6 +132,12 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
     def paginator(self):
         return self._meta.paginator_class(self.get_allowed_objects(), self._meta.limit)
 
+    def get_obj_url(self, obj_id):
+        """
+        Returns the API URL for the given object.
+        """
+        return '{}/{}'.format(self.api_url, obj_id)
+
     def get_allowed_objects(self):
         """
         This method filters the objects coming from the :meth:`get_obj_list()`
@@ -222,7 +228,7 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
                     bundle = self.dehydrate(bundle)
                     return bundle.data
                 else:
-                    raise HTTPNotFound('Resource {}/{} does not exist'.format(self.api_url, obj_id))
+                    raise HTTPNotFound('Resource {} does not exist'.format(self.get_obj_url(obj_id)))
             else:
                 raise HTTPForbidden(NOT_AUTHORIZED)
         else:
@@ -231,6 +237,9 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
     def put(self):
         """
         API endpoint for update resource (update-detail).
+
+        Note that TastyPie will actually create the object if it didn't
+        exist first, we don't do this and return a HTTPNotFound instead.
         """
         if self._meta.authentication.is_authenticated(self.request):
             # check if we have valid JSON data first
@@ -260,7 +269,7 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
                         # returns 204 no content
                         return HTTPNoContent()
                 else:
-                    raise HTTPNotFound('Resource {}/{} does not exist'.format(self.api_url, obj_id))
+                    raise HTTPNotFound('Resource {} does not exist'.format(self.get_obj_url(obj_id)))
             else:
                 raise HTTPForbidden(NOT_AUTHORIZED)
         else:
@@ -285,7 +294,7 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
                     # returns 204 no content
                     return HTTPNoContent()
                 else:
-                    raise HTTPNotFound('Resource {}/{} does not exist'.format(self.api_url, obj_id))
+                    raise HTTPNotFound('Resource {} does not exist'.format(self.get_obj_url(obj_id)))
             else:
                 raise HTTPForbidden(NOT_AUTHORIZED)
         else:
@@ -329,9 +338,9 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
                         return bundle.data
                     else:
                         # returns 201 created
-                        return HTTPCreated()
+                        return HTTPCreated(location=self.get_obj_url(bundle.obj.id))
                 else:
-                    raise HTTPConflict('Resource {}/{} already exists'.format(self.api_url, obj.id))
+                    raise HTTPConflict('Resource {} already exists'.format(self.get_obj_url(obj.id)))
             else:
                 raise HTTPForbidden(NOT_AUTHORIZED)
         else:
