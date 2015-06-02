@@ -25,7 +25,7 @@ class MockObject(object):
 
 
 @cms_resource(resource_name='simple')
-class SimpleApi(ApiBase):
+class MockSimpleApi(ApiBase):
     """
     A very simple API, just an empty list without any customisations.
     """
@@ -35,9 +35,15 @@ class SimpleApi(ApiBase):
 
 
 @cms_resource(resource_name='number')
-class NumberApi(ApiBase):
+class MockNumberApi(ApiBase):
     """
-    Another mock API, this one has 1000 items and a custom limit.
+    Another mock API, this one has 1000 items and a custom limit, each item
+    being a basic MockObject (see class above), that can store just a name
+    and id property.
+
+    This is not supposed to be a realistic API, but it implements several
+    methods such as hydrate, dehydrate, get_obj, so that API GET, PUT,
+    POST can all be tested.
     """
 
     class Meta:
@@ -74,19 +80,20 @@ class ApiBaseTest(TestCase):
         By creating a backup of these properties before each test in the
         setUp() method, they can be restored after the test in tearDown().
         """
-        self.backup_authorization = NumberApi._meta.authorization
-        self.backup_authentication = NumberApi._meta.authentication
-        self.backup_paginator = NumberApi._meta.paginator_class
-        self.backup_always_return_data = NumberApi._meta.always_return_data
+        self.backup_authorization = MockNumberApi._meta.authorization
+        self.backup_authentication = MockNumberApi._meta.authentication
+        self.backup_paginator = MockNumberApi._meta.paginator_class
+        self.backup_always_return_data = MockNumberApi._meta.always_return_data
+        self.backup_always_return_data = MockNumberApi._meta.always_return_data
 
     def tearDown(self):
         """
         Restore backed up API metaclass properties.
         """
-        NumberApi._meta.authorization = self.backup_authorization
-        NumberApi._meta.authentication = self.backup_authentication
-        NumberApi._meta.paginator_class = self.backup_paginator
-        NumberApi._meta.always_return_data = self.backup_always_return_data
+        MockNumberApi._meta.authorization = self.backup_authorization
+        MockNumberApi._meta.authentication = self.backup_authentication
+        MockNumberApi._meta.paginator_class = self.backup_paginator
+        MockNumberApi._meta.always_return_data = self.backup_always_return_data
 
     @patch('pyramidcms.api.RootFactory')
     def test_get_global_acls(self, mock_root_factory):
@@ -108,13 +115,13 @@ class ApiBaseTest(TestCase):
         """
         request = testing.DummyRequest()
 
-        api = SimpleApi(request)
+        api = MockSimpleApi(request)
         self.assertEqual(api.request, request)
         self.assertEqual(api.api_url, '/api/simple')
         self.assertEqual(api.resource_name, 'simple')
         self.assertEqual(api._meta.limit, 20)
 
-        api = NumberApi(request)
+        api = MockNumberApi(request)
         self.assertEqual(api.request, request)
         self.assertEqual(api.api_url, '/api/number')
         self.assertEqual(api.resource_name, 'number')
@@ -126,7 +133,7 @@ class ApiBaseTest(TestCase):
         class was used, this can be tested using a MagicMock.
         """
         request = testing.DummyRequest()
-        api = NumberApi(request)
+        api = MockNumberApi(request)
 
         mock_paginator = MagicMock()
         api._meta.paginator_class = mock_paginator
@@ -250,7 +257,7 @@ class ApiBaseTest(TestCase):
         """
         request = testing.DummyRequest()
         request.matchdict = {'id': 10}
-        api = NumberApi(request)
+        api = MockNumberApi(request)
 
         self.assertEqual(api.get(), {'id': 10})
 
@@ -260,7 +267,7 @@ class ApiBaseTest(TestCase):
         """
         request = testing.DummyRequest()
         request.matchdict = {'id': 10}
-        api = NumberApi(request)
+        api = MockNumberApi(request)
         api.get_obj = Mock(return_value=None)
 
         with self.assertRaises(HTTPNotFound):
@@ -272,7 +279,7 @@ class ApiBaseTest(TestCase):
         """
         request = testing.DummyRequest()
         request.matchdict = {'id': 10}
-        api = NumberApi(request)
+        api = MockNumberApi(request)
 
         auth_mock = Mock()
         api._meta.authorization = auth_mock
@@ -298,7 +305,7 @@ class ApiBaseTest(TestCase):
         """
         request = testing.DummyRequest()
         request.matchdict = {'id': 10}
-        api = NumberApi(request)
+        api = MockNumberApi(request)
 
         auth_mock = Mock()
         api._meta.authentication = auth_mock
@@ -324,7 +331,7 @@ class ApiBaseTest(TestCase):
         """
         request = testing.DummyRequest()
         request.matchdict = {'id': 10}
-        api = NumberApi(request)
+        api = MockNumberApi(request)
         delete_mock = Mock()
         api.delete_obj = delete_mock
 
@@ -340,7 +347,7 @@ class ApiBaseTest(TestCase):
         request = testing.DummyRequest()
         request.matchdict = {'id': 10}
 
-        api = NumberApi(request)
+        api = MockNumberApi(request)
         api.get_obj = Mock(return_value=None)
 
         with self.assertRaises(HTTPNotFound):
@@ -353,7 +360,7 @@ class ApiBaseTest(TestCase):
         request = testing.DummyRequest()
         request.matchdict = {'id': 10}
 
-        api = NumberApi(request)
+        api = MockNumberApi(request)
         auth_mock = Mock()
         api._meta.authorization = auth_mock
 
@@ -378,7 +385,7 @@ class ApiBaseTest(TestCase):
         """
         request = testing.DummyRequest()
         request.matchdict = {'id': 10}
-        api = NumberApi(request)
+        api = MockNumberApi(request)
 
         auth_mock = Mock()
         api._meta.authentication = auth_mock
@@ -408,7 +415,7 @@ class ApiBaseTest(TestCase):
         request.matchdict = {'id': 10}
         request.json_body = data
 
-        api = NumberApi(request)
+        api = MockNumberApi(request)
         save_mock = Mock()
         api.save_obj = save_mock
 
@@ -429,7 +436,7 @@ class ApiBaseTest(TestCase):
         request.matchdict = {'id': 10}
         request.json_body = data
 
-        api = NumberApi(request)
+        api = MockNumberApi(request)
         api._meta.always_return_data = True
         save_mock = Mock()
         api.save_obj = save_mock
@@ -450,7 +457,7 @@ class ApiBaseTest(TestCase):
         request = testing.DummyRequest()
         request.matchdict = {'id': 10}
 
-        api = NumberApi(request)
+        api = MockNumberApi(request)
         save_mock = Mock()
         api.save_obj = save_mock
 
@@ -471,7 +478,7 @@ class ApiBaseTest(TestCase):
         request = testing.DummyRequest()
         request.matchdict = {'id': 10}
         request.json_body = data
-        api = NumberApi(request)
+        api = MockNumberApi(request)
         api.get_obj = Mock(return_value=None)
 
         with self.assertRaises(HTTPNotFound):
@@ -486,7 +493,7 @@ class ApiBaseTest(TestCase):
         request = testing.DummyRequest()
         request.matchdict = {'id': 10}
         request.json_body = data
-        api = NumberApi(request)
+        api = MockNumberApi(request)
 
         auth_mock = Mock()
         api._meta.authorization = auth_mock
@@ -515,7 +522,7 @@ class ApiBaseTest(TestCase):
         request = testing.DummyRequest()
         request.matchdict = {'id': 10}
         request.json_body = data
-        api = NumberApi(request)
+        api = MockNumberApi(request)
 
         auth_mock = Mock()
         api._meta.authentication = auth_mock
@@ -544,7 +551,7 @@ class ApiBaseTest(TestCase):
         request = testing.DummyRequest()
         request.json_body = data
 
-        api = NumberApi(request)
+        api = MockNumberApi(request)
         save_mock = Mock()
         api.save_obj = save_mock
 
@@ -564,7 +571,7 @@ class ApiBaseTest(TestCase):
         request = testing.DummyRequest()
         request.json_body = data
 
-        api = NumberApi(request)
+        api = MockNumberApi(request)
         save_mock = Mock()
         get_mock = Mock(return_value=None)  # obj with this id does not exist
         api.save_obj = save_mock
@@ -587,7 +594,7 @@ class ApiBaseTest(TestCase):
         request = testing.DummyRequest()
         request.json_body = data
 
-        api = NumberApi(request)
+        api = MockNumberApi(request)
         save_mock = Mock()
         get_mock = Mock(return_value=MockObject({'id': 10}))  # return same id
         api.save_obj = save_mock
@@ -607,7 +614,7 @@ class ApiBaseTest(TestCase):
         request = testing.DummyRequest()
         request.json_body = data
 
-        api = NumberApi(request)
+        api = MockNumberApi(request)
         api._meta.always_return_data = True
         save_mock = Mock()
         api.save_obj = save_mock
@@ -627,7 +634,7 @@ class ApiBaseTest(TestCase):
         testing.DummyRequest.json_body = PropertyMock(side_effect=ValueError)
         request = testing.DummyRequest()
 
-        api = NumberApi(request)
+        api = MockNumberApi(request)
         save_mock = Mock()
         api.save_obj = save_mock
 
@@ -647,7 +654,7 @@ class ApiBaseTest(TestCase):
         data = {'name': 'admin'}
         request = testing.DummyRequest()
         request.json_body = data
-        api = NumberApi(request)
+        api = MockNumberApi(request)
 
         auth_mock = Mock()
         api._meta.authorization = auth_mock
@@ -676,7 +683,7 @@ class ApiBaseTest(TestCase):
         data = {'name': 'admin'}
         request = testing.DummyRequest()
         request.json_body = data
-        api = NumberApi(request)
+        api = MockNumberApi(request)
 
         auth_mock = Mock()
         api._meta.authentication = auth_mock
@@ -701,7 +708,7 @@ class ApiBaseTest(TestCase):
         """
         # simple api with an empty list
         request = testing.DummyRequest()
-        api = SimpleApi(request)
+        api = MockSimpleApi(request)
         data = api.collection_get()
         self.assertEqual(type(data), dict)
         self.assertListEqual(sorted(data.keys()), ['items', 'meta'])
@@ -717,7 +724,7 @@ class ApiBaseTest(TestCase):
         # a slightly more complex api with some items and custom limit, also
         # tests the second page, so we can check the previous page property.
         request = testing.DummyRequest(params={'page': '2'})
-        api = NumberApi(request)
+        api = MockNumberApi(request)
         data = api.collection_get()
         self.assertEqual(type(data), dict)
         self.assertListEqual(sorted(data.keys()), ['items', 'meta'])
@@ -732,7 +739,7 @@ class ApiBaseTest(TestCase):
 
         # test with an invalid page number, should raise a 400 bad request
         request = testing.DummyRequest(params={'page': 'invalid'})
-        api = NumberApi(request)
+        api = MockNumberApi(request)
         with self.assertRaises(HTTPBadRequest):
             api.collection_get()
 
@@ -757,7 +764,7 @@ class ApiBaseTest(TestCase):
 
         # filtered lists can be returned by a more advanced authorization class
         expected_result = [MockObject({'id': obj_id}) for obj_id in [10, 5, 2]]
-        api = NumberApi(request)
+        api = MockNumberApi(request)
         auth_mock = MagicMock()
         auth_mock.read_list.return_value = expected_result
         api._meta.authorization = auth_mock
@@ -767,7 +774,7 @@ class ApiBaseTest(TestCase):
 
         # some authorization classes will return an empty list, this is OK
         expected_result = []
-        api = NumberApi(request)
+        api = MockNumberApi(request)
         auth_mock = MagicMock()
         auth_mock.read_list.return_value = expected_result
         api._meta.authorization = auth_mock
@@ -776,7 +783,7 @@ class ApiBaseTest(TestCase):
         self.assertEqual(data['items'], expected_result)
 
         # other authorization classes will raise HTTPForbidden
-        api = NumberApi(request)
+        api = MockNumberApi(request)
         auth_mock = MagicMock()
         auth_mock.read_list.side_effect = HTTPForbidden
         api._meta.authorization = auth_mock
@@ -792,7 +799,7 @@ class ApiBaseTest(TestCase):
         returns an unauthenticated result, should raise HTTPForbidden.
         """
         request = testing.DummyRequest()
-        api = NumberApi(request)
+        api = MockNumberApi(request)
         auth_mock = MagicMock()
         api._meta.authentication = auth_mock
 
