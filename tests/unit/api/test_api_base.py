@@ -593,7 +593,7 @@ class ApiBaseTest(TestCase):
         api.save_obj = save_mock
         api.get_obj = get_mock
 
-        with self.assertRaisesRegex(HTTPConflict, 'Resource /api/number/10 already exists'):
+        with self.assertRaises(HTTPConflict):
             api.collection_post()
 
     def test_post__always_return_data(self):
