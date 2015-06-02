@@ -84,7 +84,6 @@ class ApiBaseTest(TestCase):
         self.backup_authentication = MockNumberApi._meta.authentication
         self.backup_paginator = MockNumberApi._meta.paginator_class
         self.backup_always_return_data = MockNumberApi._meta.always_return_data
-        self.backup_always_return_data = MockNumberApi._meta.always_return_data
 
     def tearDown(self):
         """
