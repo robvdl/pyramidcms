@@ -469,6 +469,32 @@ class ApiBaseTest(TestCase):
         # must not forget to remove our property for other tests
         delattr(testing.DummyRequest, 'json_body')
 
+    def test_put__validation_errors(self):
+        """
+        If request.errors contains errors, save_obj() should not be called.
+        """
+        # some test data to update
+        data = {'name': 'admin'}
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 10}
+        request.json_body = data
+        request.errors = [{
+            'name': 'username',
+            'location': 'field',
+            'description': 'Username required'
+        }]
+
+        api = MockNumberApi(request)
+        save_mock = Mock()
+        api.save_obj = save_mock
+
+        response = api.put()
+
+        # save should not be called, None is returned
+        # because request.errors is set, Cornice will turn this into a 400
+        self.assertFalse(save_mock.called)
+        self.assertIsNone(response)
+
     def test_put__notfound(self):
         """
         When updating an item that doesnt' exist, the API should
@@ -648,6 +674,31 @@ class ApiBaseTest(TestCase):
 
         # must not forget to remove our property for other tests
         delattr(testing.DummyRequest, 'json_body')
+
+    def test_collection_post__validation_error(self):
+        """
+        If request.errors contains errors, save_obj() should not be called.
+        """
+        # test data to create object
+        data = {'name': 'admin'}
+        request = testing.DummyRequest()
+        request.json_body = data
+        request.errors = [{
+            'name': 'username',
+            'location': 'field',
+            'description': 'Username required'
+        }]
+
+        api = MockNumberApi(request)
+        save_mock = Mock()
+        api.save_obj = save_mock
+
+        response = api.collection_post()
+
+        # save should not be called, None is returned
+        # because request.errors is set, Cornice will turn this into a 400
+        self.assertFalse(save_mock.called)
+        self.assertIsNone(response)
 
     def test_collection_post__authorization(self):
         """
