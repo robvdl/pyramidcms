@@ -259,6 +259,12 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
                 if obj is not None:
                     # hydrate and save the object
                     bundle = self.hydrate(bundle)
+
+                    # if there are errors, don't call save_obj and return
+                    # this results in a 400 Bad Request, which is what we want
+                    if self.request.errors:
+                        return
+
                     self.save_obj(bundle.obj)
 
                     # returning the data is optional and is done per-resource.
@@ -330,6 +336,12 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
                 if obj is None:
                     # hydrate and save the object
                     bundle = self.hydrate(bundle)
+
+                    # if there are errors, don't call save_obj and return
+                    # this results in a 400 Bad Request, which is what we want
+                    if self.request.errors:
+                        return
+
                     self.save_obj(bundle.obj)
 
                     # returning the data is optional and is done per-resource.

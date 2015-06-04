@@ -413,6 +413,7 @@ class ApiBaseTest(TestCase):
         request = testing.DummyRequest()
         request.matchdict = {'id': 10}
         request.json_body = data
+        request.errors = []
 
         api = MockNumberApi(request)
         save_mock = Mock()
@@ -434,6 +435,7 @@ class ApiBaseTest(TestCase):
         request = testing.DummyRequest()
         request.matchdict = {'id': 10}
         request.json_body = data
+        request.errors = []
 
         api = MockNumberApi(request)
         api._meta.always_return_data = True
@@ -549,6 +551,7 @@ class ApiBaseTest(TestCase):
         data = {'name': 'admin'}
         request = testing.DummyRequest()
         request.json_body = data
+        request.errors = []
 
         api = MockNumberApi(request)
         save_mock = Mock()
@@ -569,6 +572,7 @@ class ApiBaseTest(TestCase):
         data = {'id': 10, 'name': 'admin'}
         request = testing.DummyRequest()
         request.json_body = data
+        request.errors = []
 
         api = MockNumberApi(request)
         save_mock = Mock()
@@ -612,6 +616,7 @@ class ApiBaseTest(TestCase):
         data = {'name': 'admin'}
         request = testing.DummyRequest()
         request.json_body = data
+        request.errors = []
 
         api = MockNumberApi(request)
         api._meta.always_return_data = True
