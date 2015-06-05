@@ -1,6 +1,8 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
+from pyramid import testing
+
 from pyramidcms.api import Bundle
 
 
@@ -30,3 +32,14 @@ class BundleTests(TestCase):
         bundle = Bundle(obj=obj, data=data)
         self.assertEqual(repr(bundle),
                          "<Bundle for obj: 'test_str' and with data: {'id': 10}>")
+
+    def test_json(self):
+        """
+        There should be a __json__ method on the bundle, that simply
+        returns bundle.data
+        """
+        request = testing.DummyRequest()
+        data = {'id': 10}
+        bundle = Bundle(data=data)
+
+        self.assertDictEqual(bundle.__json__(request), bundle.data)

@@ -165,10 +165,13 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
 
     def dehydrate_obj(self, obj):
         """
-        Dehydrate an object, builds a bundle first.
+        Dehydrate an object, returns a bundle.
+
+        :param obj: the object that will be dehydrated
+        :returns: :class:`pyramidcms.api.Bundle` object.
         """
         bundle = self.build_bundle(obj=obj)
-        return self.dehydrate(bundle).obj
+        return self.dehydrate(bundle)
 
     def dehydrate(self, bundle):
         """
@@ -227,7 +230,7 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
             if self._meta.authorization.read_detail(obj, bundle):
                 if obj is not None:
                     bundle = self.dehydrate(bundle)
-                    return bundle.data
+                    return bundle
                 else:
                     raise HTTPNotFound(RESOURCE_NOTFOUND.format(self.get_obj_url(obj_id)))
             else:
@@ -271,7 +274,7 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
                     if self._meta.always_return_data:
                         # return the data that was saved during hydrate
                         bundle = self.dehydrate(bundle)
-                        return bundle.data
+                        return bundle
                     else:
                         # returns 204 no content
                         return HTTPNoContent()
@@ -348,7 +351,7 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
                     if self._meta.always_return_data:
                         # return the data that was saved during hydrate
                         bundle = self.dehydrate(bundle)
-                        return bundle.data
+                        return bundle
                     else:
                         # returns 201 created
                         return HTTPCreated(location=self.get_obj_url(bundle.obj.id))

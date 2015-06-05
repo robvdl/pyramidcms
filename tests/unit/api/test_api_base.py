@@ -258,7 +258,8 @@ class ApiBaseTest(TestCase):
         request.matchdict = {'id': 10}
         api = MockNumberApi(request)
 
-        self.assertEqual(api.get(), {'id': 10})
+        bundle = api.get()
+        self.assertEqual(bundle.data, {'id': 10})
 
     def test_get__notfound(self):
         """
@@ -442,10 +443,10 @@ class ApiBaseTest(TestCase):
         save_mock = Mock()
         api.save_obj = save_mock
 
-        return_data = api.put()
+        bundle = api.put()
 
         # return_data is using dehydrate, defined in the NumberApi class.
-        self.assertDictEqual(return_data, {'id': 10, 'name': 'admin'})
+        self.assertDictEqual(bundle.data, {'id': 10, 'name': 'admin'})
         self.assertTrue(save_mock.called)
 
     def test_put__invalid_json(self):
@@ -649,10 +650,10 @@ class ApiBaseTest(TestCase):
         save_mock = Mock()
         api.save_obj = save_mock
 
-        return_data = api.collection_post()
+        bundle = api.collection_post()
 
         # return_data is using dehydrate, defined in the NumberApi class.
-        self.assertDictEqual(return_data, {'id': 10, 'name': 'admin'})
+        self.assertDictEqual(bundle.data, {'id': 10, 'name': 'admin'})
         self.assertTrue(save_mock.called)
 
     def test_collection_post__invalid_json(self):
@@ -818,14 +819,15 @@ class ApiBaseTest(TestCase):
         request = testing.DummyRequest()
 
         # filtered lists can be returned by a more advanced authorization class
-        expected_result = [MockObject({'id': obj_id}) for obj_id in [10, 5, 2]]
+        authorized_objects = [MockObject({'id': obj_id}) for obj_id in [10, 5, 2]]
+        expected_result = [{'id': 10}, {'id': 5}, {'id': 2}]
         api = MockNumberApi(request)
         auth_mock = MagicMock()
-        auth_mock.read_list.return_value = expected_result
+        auth_mock.read_list.return_value = authorized_objects
         api._meta.authorization = auth_mock
 
         data = api.collection_get()
-        self.assertEqual(data['items'], expected_result)
+        self.assertEqual([bundle.data for bundle in data['items']], expected_result)
 
         # some authorization classes will return an empty list, this is OK
         expected_result = []

@@ -15,3 +15,13 @@ class Bundle(object):
 
     def __repr__(self):
         return "<Bundle for obj: '{}' and with data: {}>".format(self.obj, self.data)
+
+    def __json__(self, request):
+        """
+        This method is automatically called by Pyramid, if we are using
+        the json renderer.
+
+        :param request: Pyramid request object
+        :return: dict that is safe to JSON serialize
+        """
+        return self.data
