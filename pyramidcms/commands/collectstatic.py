@@ -59,14 +59,14 @@ class Command(BaseCommand):
 
         return total_files, num_files_copied, num_dirs_created
 
-    def remove_files(self, folder_path):
+    def clear_folder_contents(self, folder_path):
         """
         Removes folders and files from the given directory.
-        :param folder_path: The path of the directory that files will be
-        deleted from.
+
+        :param folder_path: The directory that will be cleared.
         """
         if os.path.exists(folder_path):
-            print('Clearing: "{}"\n'.format(folder_path))
+            print('Clearing: "{}"'.format(folder_path))
             for file_object in os.listdir(folder_path):
                 file_object_path = os.path.join(folder_path, file_object)
                 if os.path.isfile(file_object_path):
@@ -86,8 +86,8 @@ class Command(BaseCommand):
         print('Source directories: "{}"'.format('", "'.join(static_dirs)))
         print('Destination directory: "{}"\n'.format(collect_dir))
 
-        if (args.clear):
-            self.remove_files(collect_dir)
+        if args.clear:
+            self.clear_folder_contents(collect_dir)
 
         total_files, num_files_copied, num_dirs_created = 0, 0, 0
         for directory in static_dirs:
@@ -98,7 +98,7 @@ class Command(BaseCommand):
 
         # only print a newline if there was output during copying
         if num_dirs_created > 0 or num_files_copied > 0:
-            print('\n')
+            print('')
 
         print('Number of files copied: {}'.format(num_files_copied))
         print('Number of directories created: {}'.format(num_dirs_created))
