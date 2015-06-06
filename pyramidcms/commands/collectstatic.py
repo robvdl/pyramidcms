@@ -66,8 +66,8 @@ class Command(BaseCommand):
         :param folder_path: The path of the directory that files will be
         deleted from.
         """
-        print('Clearing: "{}"\n'.format(folder_path))
         if os.path.exists(folder_path):
+            print('Clearing: "{}"\n'.format(folder_path))
             for file_object in os.listdir(folder_path):
                 file_object_path = os.path.join(folder_path, file_object)
                 if os.path.isfile(file_object_path):
