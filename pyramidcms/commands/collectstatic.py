@@ -77,7 +77,7 @@ class Command(BaseCommand):
     def setup_args(self, parser):
         parser.add_argument('-c',
                             '--clear',
-                            help='Clears files from static directory',
+                            help='empties the target directory first',
                             action='store_true')
 
     def handle(self, args):
