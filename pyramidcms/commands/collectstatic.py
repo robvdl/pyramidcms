@@ -1,5 +1,6 @@
 import os
 import shutil
+import argparse
 
 from pyramidcms.cli import BaseCommand
 from pyramidcms.config import get_static_dirs
@@ -59,11 +60,35 @@ class Command(BaseCommand):
 
         return total_files, num_files_copied, num_dirs_created
 
+    def remove_files(self, folder_path):
+        """
+        Removes folders and files from the given directory.
+        :param folder_path: The path of the directory that files will be
+        deleted from.
+        """
+        print('Clearing: "{}"\n'.format(folder_path))
+        for file_object in os.listdir(folder_path):
+            file_object_path = os.path.join(folder_path, file_object)
+            if os.path.isfile(file_object_path):
+                os.unlink(file_object_path)
+            else:
+                shutil.rmtree(file_object_path)
+
+    def setup_args(self, parser):
+        parser.add_argument('-c',
+                            '--clear',
+                            help='Clears files from static directory',
+                            action='store_true')
+
     def handle(self, args):
         static_dirs = get_static_dirs(self.settings)
         collect_dir = self.settings.get('static.collect_dir')
         print('Source directories: "{}"'.format('", "'.join(static_dirs)))
         print('Destination directory: "{}"\n'.format(collect_dir))
+
+        if (args.clear):
+            if os.path.exists(collect_dir):
+                self.remove_files(collect_dir)
 
         total_files, num_files_copied, num_dirs_created = 0, 0, 0
         for directory in static_dirs:
