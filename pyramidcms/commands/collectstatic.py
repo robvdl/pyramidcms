@@ -1,6 +1,5 @@
 import os
 import shutil
-import argparse
 
 from pyramidcms.cli import BaseCommand
 from pyramidcms.config import get_static_dirs
