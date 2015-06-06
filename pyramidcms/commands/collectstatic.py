@@ -67,12 +67,13 @@ class Command(BaseCommand):
         deleted from.
         """
         print('Clearing: "{}"\n'.format(folder_path))
-        for file_object in os.listdir(folder_path):
-            file_object_path = os.path.join(folder_path, file_object)
-            if os.path.isfile(file_object_path):
-                os.unlink(file_object_path)
-            else:
-                shutil.rmtree(file_object_path)
+        if os.path.exists(folder_path):
+            for file_object in os.listdir(folder_path):
+                file_object_path = os.path.join(folder_path, file_object)
+                if os.path.isfile(file_object_path):
+                    os.unlink(file_object_path)
+                else:
+                    shutil.rmtree(file_object_path)
 
     def setup_args(self, parser):
         parser.add_argument('-c',
@@ -87,8 +88,7 @@ class Command(BaseCommand):
         print('Destination directory: "{}"\n'.format(collect_dir))
 
         if (args.clear):
-            if os.path.exists(collect_dir):
-                self.remove_files(collect_dir)
+            self.remove_files(collect_dir)
 
         total_files, num_files_copied, num_dirs_created = 0, 0, 0
         for directory in static_dirs:
