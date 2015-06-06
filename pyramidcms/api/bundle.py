@@ -7,14 +7,19 @@ class Bundle(object):
     different points.
     """
 
-    def __init__(self, obj=None, data=None, request=None, resource=None):
+    def __init__(self, obj=None, data=None, request=None, resource=None, items=None, meta=None):
         self.obj = obj
         self.data = data or {}
         self.request = request
         self.resource = resource
+        self.items = items or []
+        self.meta = meta or {}
 
     def __repr__(self):
-        return "<Bundle for obj: '{}' and with data: {}>".format(self.obj, self.data)
+        if self.obj is not None:
+            return "<Bundle for obj: '{}' and with data: {}>".format(self.obj, self.data)
+        else:
+            return "<Bundle with items: {}>".format(self.items)
 
     def __json__(self, request):
         """
@@ -24,4 +29,10 @@ class Bundle(object):
         :param request: Pyramid request object
         :return: dict that is safe to JSON serialize
         """
-        return self.data
+        if self.obj is not None:
+            return self.data
+        else:
+            return {
+                'meta': self.meta,
+                'items': [item.__json__(self.request) for item in self.items]
+            }

@@ -1,4 +1,4 @@
-from cornice.resource import resource
+from cornice.resource import resource, view
 from pyramid.decorator import reify
 from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound, HTTPForbidden,\
     HTTPNoContent, HTTPConflict, HTTPCreated
@@ -129,23 +129,11 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
         key = [s for s in self._services if not s.startswith('collection_')][0]
         return self._services[key].name
 
-    @reify
-    def paginator(self):
-        return self._meta.paginator_class(self.get_allowed_objects(), self._meta.limit)
-
     def get_obj_url(self, obj_id):
         """
         Returns the API URL for the given object.
         """
         return '{}/{}'.format(self.api_url, obj_id)
-
-    def get_allowed_objects(self):
-        """
-        This method filters the objects coming from the :meth:`get_obj_list()`
-        method using the authorization class read_list() method.
-        """
-        base_bundle = self.build_bundle()
-        return self._meta.authorization.read_list(self.get_obj_list(), base_bundle)
 
     def get_obj_list(self):
         """
@@ -201,14 +189,7 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
         """
         Given either an object, a data dictionary or both, builds a ``Bundle``
         for use throughout the ``dehydrate/hydrate`` cycle.
-
-        If no object is provided, an empty object from
-        ``ApiBase._meta.object_class`` is created so that attempts to access
-        ``bundle.obj`` do not fail.
         """
-        if obj is None and self._meta.object_class:
-            obj = self._meta.object_class()
-
         return Bundle(
             obj=obj,
             data=data,
@@ -216,6 +197,9 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
             resource=self
         )
 
+    @view(accept='', renderer='json')
+    @view(accept='text/html', renderer='html-api')
+    @view(accept='application/json', renderer='json')
     def get(self):
         """
         API endpoint for get resource (get-detail).
@@ -238,6 +222,9 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
         else:
             raise HTTPForbidden(NOT_AUTHENTICATED)
 
+    @view(accept='', renderer='json')
+    @view(accept='text/html', renderer='html-api')
+    @view(accept='application/json', renderer='json')
     def put(self):
         """
         API endpoint for update resource (update-detail).
@@ -285,6 +272,9 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
         else:
             raise HTTPForbidden(NOT_AUTHENTICATED)
 
+    @view(accept='', renderer='json')
+    @view(accept='text/html', renderer='html-api')
+    @view(accept='application/json', renderer='json')
     def delete(self):
         """
         API endpoint to delete a resource (delete-detail).
@@ -310,6 +300,9 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
         else:
             raise HTTPForbidden(NOT_AUTHENTICATED)
 
+    @view(accept='', renderer='json')
+    @view(accept='text/html', renderer='html-api')
+    @view(accept='application/json', renderer='json')
     def collection_post(self):
         """
         API endpoint for create resource (post-list).
@@ -325,10 +318,15 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
                 raise HTTPBadRequest(INVALID_JSON)
 
             # if there is an id, fetch the object so we can check if it exists.
+            # if obj is None, create a new instance using _meta.object_class
             if 'id' in data:
                 obj = self.get_obj(data['id'])
+                obj_exists = obj is not None
+                if not obj_exists:
+                    obj = self._meta.object_class()
             else:
-                obj = None
+                obj_exists = False
+                obj = self._meta.object_class()
 
             # create bundle based on data, obj should be None unless it exists
             bundle = self.build_bundle(obj=obj, data=data)
@@ -336,7 +334,7 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
             # check if we are allowed to create objects for this resource
             if self._meta.authorization.create_detail(bundle.obj, bundle):
                 # we need to check if the object exists (if data has an id)
-                if obj is None:
+                if not obj_exists:
                     # hydrate and save the object
                     bundle = self.hydrate(bundle)
 
@@ -362,15 +360,23 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
         else:
             raise HTTPForbidden(NOT_AUTHENTICATED)
 
+    @view(accept='', renderer='json')
+    @view(accept='text/html', renderer='html-api')
+    @view(accept='application/json', renderer='json')
     def collection_get(self):
         """
         API endpoint that returns a list of items for this resource (get-list).
         """
         if self._meta.authentication.is_authenticated(self.request):
-            # authorization (filtering results) happens in paginator property
+            # a bundle without bundle.obj that represents the entire collection
+            bundle = self.build_bundle()
+
+            # filter results using the authorization class and create paginator
+            allowed_objects = self._meta.authorization.read_list(self.get_obj_list(), bundle)
+            paginator = self._meta.paginator_class(allowed_objects, self._meta.limit)
             try:
                 page_number = int(self.request.GET.get('page', 1))
-                page = self.paginator.page(page_number)
+                page = paginator.page(page_number)
             except (ValueError, InvalidPage):
                 raise HTTPBadRequest(INVALID_PAGE)
 
@@ -386,17 +392,16 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
             else:
                 prev_page_url = None
 
-            return {
-                'meta': {
-                    'limit': self.paginator.per_page,
-                    'next': next_page_url,
-                    'page': page.number,
-                    'num_pages': self.paginator.num_pages,
-                    'previous': prev_page_url,
-                    'total_count': self.paginator.count
-                },
-                'items': [self.dehydrate_obj(obj) for obj in page.object_list]
+            bundle.items = [self.dehydrate_obj(obj) for obj in page.object_list]
+            bundle.meta = {
+                'limit': paginator.per_page,
+                'next': next_page_url,
+                'page': page.number,
+                'num_pages': paginator.num_pages,
+                'previous': prev_page_url,
+                'total_count': paginator.count
             }
+            return bundle
         else:
             raise HTTPForbidden(NOT_AUTHENTICATED)
 

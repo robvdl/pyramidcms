@@ -126,20 +126,6 @@ class ApiBaseTest(TestCase):
         self.assertEqual(api.resource_name, 'number')
         self.assertEqual(api._meta.limit, 10)
 
-    def test_paginator_class(self):
-        """
-        This tests if the correct paginator class from the Meta
-        class was used, this can be tested using a MagicMock.
-        """
-        request = testing.DummyRequest()
-        api = MockNumberApi(request)
-
-        mock_paginator = MagicMock()
-        api._meta.paginator_class = mock_paginator
-
-        api.paginator.page(1)
-        self.assertTrue(mock_paginator.called)
-
     def test_get_obj_list(self):
         """
         Method should raise NotImplementedError in the ApiBase class.
@@ -188,16 +174,11 @@ class ApiBaseTest(TestCase):
 
     def test_build_bundle(self):
         """
-        When build_bundle is called without an obj, it should construct
-        bundle.obj using the class defined in _meta.object_class.
+        Should construct a bundle object.
         """
         # some test data
         request = testing.DummyRequest()
         data = {'id': 1, 'name': 'admin'}
-
-        # back up the current object_class variable, this is needed because
-        # the ._meta property is on the ApiBase class, not on the instance.
-        backup_object_class = ApiBase._meta.object_class
 
         # calling build_bundle with an object
         obj = Mock()
@@ -209,16 +190,10 @@ class ApiBaseTest(TestCase):
         self.assertEqual(bundle.obj, obj)   # should use obj
 
         # calling build_bundle without an object
-        mock_class = Mock()
-        ApiBase._meta.object_class = mock_class
         bundle = api.build_bundle(data=data)
         self.assertEqual(bundle.resource, api)
         self.assertEqual(bundle.request, request)
         self.assertEqual(bundle.data, data)
-        self.assertTrue(mock_class.called)  # a new object_class is constructed
-
-        # restore object_class so it doesn't affect other tests.
-        ApiBase._meta.object_class = backup_object_class
 
     def test_hydrate(self):
         """
@@ -604,8 +579,10 @@ class ApiBaseTest(TestCase):
         api = MockNumberApi(request)
         save_mock = Mock()
         get_mock = Mock(return_value=None)  # obj with this id does not exist
+        object_class_mock = Mock()
         api.save_obj = save_mock
         api.get_obj = get_mock
+        api._meta.object_class = object_class_mock
 
         response = api.collection_post()
 
@@ -639,6 +616,12 @@ class ApiBaseTest(TestCase):
         that we get the dehydrated bundle back from the API, rather than
         just a status code of 201.
         """
+        # we need to mock object_class on the metaclass
+        # take a backup first, since _meta is on the class itself
+        backup_object_class = MockNumberApi._meta.object_class
+        mock_object_class = Mock()
+        MockNumberApi._meta.object_class = mock_object_class
+
         # test data to create object
         data = {'name': 'admin'}
         request = testing.DummyRequest()
@@ -654,7 +637,10 @@ class ApiBaseTest(TestCase):
 
         # return_data is using dehydrate, defined in the NumberApi class.
         self.assertDictEqual(bundle.data, {'id': 10, 'name': 'admin'})
+        self.assertTrue(mock_object_class.called)
         self.assertTrue(save_mock.called)
+
+        MockNumberApi._meta.objects_class = backup_object_class
 
     def test_collection_post__invalid_json(self):
         """
@@ -713,7 +699,9 @@ class ApiBaseTest(TestCase):
         api = MockNumberApi(request)
 
         auth_mock = Mock()
+        object_class_mock = Mock()
         api._meta.authorization = auth_mock
+        api._meta.object_class = object_class_mock
 
         # create_detail can return False for unauthorized
         auth_mock.create_detail.return_value = False
@@ -765,10 +753,10 @@ class ApiBaseTest(TestCase):
         # simple api with an empty list
         request = testing.DummyRequest()
         api = MockSimpleApi(request)
-        data = api.collection_get()
-        self.assertEqual(type(data), dict)
-        self.assertListEqual(sorted(data.keys()), ['items', 'meta'])
-        self.assertDictEqual(data['meta'], {
+        bundle = api.collection_get()
+
+        self.assertListEqual(bundle.items, [])
+        self.assertDictEqual(bundle.meta, {
             'limit': 20,
             'next': None,
             'page': 1,
@@ -781,10 +769,11 @@ class ApiBaseTest(TestCase):
         # tests the second page, so we can check the previous page property.
         request = testing.DummyRequest(params={'page': '2'})
         api = MockNumberApi(request)
-        data = api.collection_get()
-        self.assertEqual(type(data), dict)
-        self.assertListEqual(sorted(data.keys()), ['items', 'meta'])
-        self.assertDictEqual(data['meta'], {
+        bundle = api.collection_get()
+
+        # items is a list of Mock objects, it's easier to check the lnegth
+        self.assertEqual(len(bundle.items), 10)
+        self.assertDictEqual(bundle.meta, {
             'limit': 10,
             'next': '/api/number?page=3',
             'page': 2,
@@ -801,20 +790,8 @@ class ApiBaseTest(TestCase):
 
     def test_collection_get__authorization(self):
         """
-        When collection_get is called, it uses the paginator @reify property
-        to get the list of objects to display for the current age.
-
-        The list of objects is filtered based on the authorization class
-        that is used, in the paginator @reify property method.
-
-        When this @reify property is called the first time, the filtering
-        is applied, so that we create a Paginator object based on the
-        filtered results, filtered by the authorization class in use.
-
-        Because the paginator is a @reify property, once it has already been
-        called, we have to create a new api object between each test, this is
-        normally not a problem on a per-request basis on an api resource when
-        the paginator shouldn't change.
+        When collection_get is called, the list of objects is filtered based
+        on the authorization class that is used.
         """
         request = testing.DummyRequest()
 
@@ -826,8 +803,8 @@ class ApiBaseTest(TestCase):
         auth_mock.read_list.return_value = authorized_objects
         api._meta.authorization = auth_mock
 
-        data = api.collection_get()
-        self.assertEqual([bundle.data for bundle in data['items']], expected_result)
+        bundle = api.collection_get()
+        self.assertEqual([item.data for item in bundle.items], expected_result)
 
         # some authorization classes will return an empty list, this is OK
         expected_result = []
@@ -836,8 +813,8 @@ class ApiBaseTest(TestCase):
         auth_mock.read_list.return_value = expected_result
         api._meta.authorization = auth_mock
 
-        data = api.collection_get()
-        self.assertEqual(data['items'], expected_result)
+        bundle = api.collection_get()
+        self.assertEqual(bundle.items, expected_result)
 
         # other authorization classes will raise HTTPForbidden
         api = MockNumberApi(request)

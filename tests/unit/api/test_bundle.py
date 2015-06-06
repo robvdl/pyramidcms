@@ -15,10 +15,9 @@ class BundleTests(TestCase):
         """
         The only thing we can really test here is the __repr__ method.
         """
-        # no data or obj
+        # no obj is used in API lists
         bundle = Bundle(obj=None, data=None)
-        self.assertEqual(repr(bundle),
-                         "<Bundle for obj: 'None' and with data: {}>")
+        self.assertEqual(repr(bundle), '<Bundle with items: []>')
 
         # using a mock obj with an __str__ method.
         obj = Mock()
@@ -35,11 +34,31 @@ class BundleTests(TestCase):
 
     def test_json(self):
         """
-        There should be a __json__ method on the bundle, that simply
-        returns bundle.data
+        There should be a __json__ method on the bundle, that either returns
+        bundle.data for single object bundles, or serializes list API bundles.
         """
+        # single object bundle
         request = testing.DummyRequest()
         data = {'id': 10}
-        bundle = Bundle(data=data)
-
+        bundle = Bundle(obj=Mock(), data=data)
         self.assertDictEqual(bundle.__json__(request), bundle.data)
+
+        # list of objects, each item must be a Bundle too
+        items = [Bundle(obj=Mock(), data={'number': n}) for n in range(1, 11)]
+        meta = {'meta': 'data'}
+        bundle = Bundle(meta=meta, items=items)
+        self.assertDictEqual(bundle.__json__(request), {
+            'items': [
+                {'number': 1},
+                {'number': 2},
+                {'number': 3},
+                {'number': 4},
+                {'number': 5},
+                {'number': 6},
+                {'number': 7},
+                {'number': 8},
+                {'number': 9},
+                {'number': 10}
+            ],
+            'meta': {'meta': 'data'}
+        })

@@ -3,6 +3,7 @@ from pyramid.settings import asbool
 from .db import setup_db_connection
 from .config import get_static_dirs
 from .security import get_current_user
+from .api.renderers import BrowsableAPIRenderer
 
 
 def includeme(config):
@@ -37,6 +38,9 @@ def includeme(config):
     # debug flag, defaults to false if missing
     debug = asbool(settings.get('pyramidcms.debug', False))
     config.registry.settings['pyramidcms.debug'] = debug
+
+    # custom pyramid renderers for the api
+    config.add_renderer('html-api', BrowsableAPIRenderer)
 
     # routes
     config.add_route('home', '/')
