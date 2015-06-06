@@ -17,12 +17,5 @@ class BaseLayout(object):
         self.settings = request.registry.settings
 
     @reify
-    def logged_in(self):
-        """
-        Template property that returns True if a user is logged in.
-        """
-        return self.request.user is not None
-
-    @reify
     def csrf_token(self):
         return self.session.get_csrf_token()

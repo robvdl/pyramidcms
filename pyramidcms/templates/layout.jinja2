@@ -6,7 +6,7 @@
 
 <body>
     {% block main %}{% endblock %}
-    <p>Status: Logged {% if view.logged_in %}in{% else %}out{% endif %}</p>
+    <p>Status: Logged {% if request.user %}in{% else %}out{% endif %}</p>
 </body>
 
 </html>
