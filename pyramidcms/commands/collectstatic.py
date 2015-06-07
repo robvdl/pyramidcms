@@ -36,7 +36,7 @@ class Command(BaseCommand):
         for root, dirs, files in os.walk(src):
 
             if not ignore:
-                exclude = set(['CVS', '.*', '*~'])
+                exclude = {'CVS', '.*', '*~'}
                 for extension in exclude:
                     dirs[:] = [d for d in dirs if d not in
                                fnmatch.filter(dirs, extension)]
