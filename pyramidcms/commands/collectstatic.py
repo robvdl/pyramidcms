@@ -1,5 +1,6 @@
 import os
 import shutil
+import fnmatch
 
 from pyramidcms.cli import BaseCommand
 from pyramidcms.config import get_static_dirs
@@ -33,6 +34,11 @@ class Command(BaseCommand):
             num_dirs_created += 1
 
         for root, dirs, files in os.walk(src):
+
+            exclude = set(['CVS', '.*', '*~'])
+            dirs[:] = [d for d in dirs if d not in fnmatch.filter(dirs, exclusions ]
+            files[:] = [f for f in files if f not in exclude]
+
             for item in files:
                 src_path = os.path.join(root, item)
                 dst_path = os.path.join(dest, src_path.replace(src, ''))
