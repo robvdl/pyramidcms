@@ -610,7 +610,7 @@ class ApiBaseTest(TestCase):
         with self.assertRaises(HTTPConflict):
             api.collection_post()
 
-    def test_post__always_return_data(self):
+    def test_collection_post__always_return_data(self):
         """
         Tests that if always_return_data is set on the API Meta class,
         that we get the dehydrated bundle back from the API, rather than
