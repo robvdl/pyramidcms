@@ -103,16 +103,11 @@ class Command(BaseCommand):
         if args.clear:
             self.clear_folder_contents(collect_dir)
 
-        if args.no_default_ignore:
-            ignore = True
-        else:
-            ignore = False
-
         total_files, num_files_copied, num_dirs_created = 0, 0, 0
         for directory in static_dirs:
             total, num_copied, dirs_created = self.copy_files(directory,
                                                               collect_dir,
-                                                              ignore)
+                                                              args.no_default_ignore)
             total_files += total
             num_files_copied += num_copied
             num_dirs_created += dirs_created
