@@ -12,7 +12,7 @@ class Command(BaseCommand):
     copies them into the static.collection_dir folder.
     """
 
-    def copy_files(self, src, dest):
+    def copy_files(self, src, dest, ignore):
         """
         Copy files and folders recursively from the source directory
         to the destination.
@@ -35,9 +35,13 @@ class Command(BaseCommand):
 
         for root, dirs, files in os.walk(src):
 
-            exclude = set(['CVS', '.*', '*~'])
-            dirs[:] = [d for d in dirs if d not in fnmatch.filter(dirs, exclusions ]
-            files[:] = [f for f in files if f not in exclude]
+            if not ignore:
+                exclude = set(['CVS', '.*', '*~'])
+                for extension in exclude:
+                    dirs[:] = [d for d in dirs if d not in
+                               fnmatch.filter(dirs, extension)]
+                    files[:] = [f for f in files if f not in
+                                fnmatch.filter(files, extension)]
 
             for item in files:
                 src_path = os.path.join(root, item)
@@ -85,7 +89,10 @@ class Command(BaseCommand):
                             '--clear',
                             help='empties the target directory first',
                             action='store_true')
-
+        parser.add_argument('-n',
+                            '--no-default-ignore',
+                            help='collects all files and directories',
+                            action='store_true')
     def handle(self, args):
         static_dirs = get_static_dirs(self.settings)
         collect_dir = self.settings.get('static.collect_dir')
@@ -95,9 +102,16 @@ class Command(BaseCommand):
         if args.clear:
             self.clear_folder_contents(collect_dir)
 
+        if args.no_default_ignore:
+            ignore = True
+        else:
+            ignore = False
+
         total_files, num_files_copied, num_dirs_created = 0, 0, 0
         for directory in static_dirs:
-            total, num_copied, dirs_created = self.copy_files(directory, collect_dir)
+            total, num_copied, dirs_created = self.copy_files(directory,
+                                                              collect_dir,
+                                                              ignore)
             total_files += total
             num_files_copied += num_copied
             num_dirs_created += dirs_created
