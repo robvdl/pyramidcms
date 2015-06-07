@@ -93,6 +93,7 @@ class Command(BaseCommand):
                             '--no-default-ignore',
                             help='collects all files and directories',
                             action='store_true')
+
     def handle(self, args):
         static_dirs = get_static_dirs(self.settings)
         collect_dir = self.settings.get('static.collect_dir')
