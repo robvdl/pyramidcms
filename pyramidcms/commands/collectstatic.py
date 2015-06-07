@@ -91,7 +91,7 @@ class Command(BaseCommand):
                             action='store_true')
         parser.add_argument('-n',
                             '--no-default-ignore',
-                            help='collects all files and directories',
+                            help='also copy commonly ignored files (e.g. dotfiles)',
                             action='store_true')
 
     def handle(self, args):
