@@ -112,7 +112,7 @@ class BaseModelTests(TestCase):
         argument is True.
         """
         model = db.BaseModel()
-        model.save(True)
+        model.save(commit=True)
         mock_session.add.assert_called_once_with(model)
 
         # transaction.commit() should have been called

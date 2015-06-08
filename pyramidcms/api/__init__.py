@@ -1,4 +1,7 @@
+import colander
 from cornice.resource import resource, view
+from cornice.schemas import CorniceSchema
+from sqlalchemy.exc import IntegrityError
 from pyramid.decorator import reify
 from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound, HTTPForbidden,\
     HTTPNoContent, HTTPConflict, HTTPCreated
@@ -8,7 +11,7 @@ from pyramidcms.api.authorization import ReadOnlyAuthorization
 from pyramidcms.core.paginator import Paginator
 from pyramidcms.core.exceptions import InvalidPage
 from pyramidcms.core.messages import NOT_AUTHORIZED, NOT_AUTHENTICATED,\
-    INVALID_JSON, RESOURCE_NOTFOUND, RESOURCE_EXISTS, INVALID_PAGE
+    RESOURCE_NOT_FOUND, RESOURCE_EXISTS, INVALID_PAGE
 from pyramidcms.security import RootFactory
 from .bundle import Bundle
 
@@ -24,7 +27,7 @@ def get_global_acls(request):
     return RootFactory(request).__acl__
 
 
-def cms_resource(resource_name):
+def cms_resource(resource_name, **kwargs):
     """
     A helper that returns a cornice @resource decorator, pre-populating
     the collection_path, path, and name from the resource_name argument.
@@ -39,7 +42,8 @@ def cms_resource(resource_name):
         name=resource_name,
         collection_path=list_url,
         path=detail_url,
-        acl=get_global_acls
+        acl=get_global_acls,
+        **kwargs
     )
 
 
@@ -65,6 +69,7 @@ class ApiMeta(object):
     authorization = ReadOnlyAuthorization()
     object_class = None
     always_return_data = False
+    schema = None
 
     def __new__(cls, meta=None):
         overrides = {}
@@ -128,6 +133,29 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
     def resource_name(self):
         key = [s for s in self._services if not s.startswith('collection_')][0]
         return self._services[key].name
+
+    @property
+    def schema(self):
+        """
+        The purpose of this property is to only apply the colander schema
+        for the PUT and POST request methods, which do writes.
+
+        If we set the schema on the @resource decorator, it ends up getting
+        applied to all request methods, which is not what we want.
+
+        :return: :class:`cornice.schemas.CorniceSchema` object
+        """
+        if self.request.method in ('POST', 'PUT'):
+            schema = self._meta.schema
+        else:
+            schema = None
+
+        # if there is no schema, or the request method is GET, we still need
+        # an empty Schema object, we can't just return None.
+        if schema is None:
+            schema = colander.Schema
+
+        return CorniceSchema.from_colander(schema)
 
     def get_obj_url(self, obj_id):
         """
@@ -216,7 +244,7 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
                     bundle = self.dehydrate(bundle)
                     return bundle
                 else:
-                    raise HTTPNotFound(RESOURCE_NOTFOUND.format(self.get_obj_url(obj_id)))
+                    raise HTTPNotFound(RESOURCE_NOT_FOUND.format(self.get_obj_url(obj_id)))
             else:
                 raise HTTPForbidden(NOT_AUTHORIZED)
         else:
@@ -233,16 +261,10 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
         exist first, we don't do this and return HTTPNotFound instead.
         """
         if self._meta.authentication.is_authenticated(self.request):
-            # check if we have valid JSON data first
-            try:
-                data = self.request.json_body
-            except ValueError:
-                raise HTTPBadRequest(INVALID_JSON)
-
             # get the current object to update, build a bundle with the data
             obj_id = self.request.matchdict['id']
             obj = self.get_obj(obj_id)
-            bundle = self.build_bundle(obj=obj, data=data)
+            bundle = self.build_bundle(obj=obj, data=self.request.validated)
 
             # now we can check if we are allowed to update this object
             if self._meta.authorization.update_detail(obj, bundle):
@@ -266,7 +288,7 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
                         # returns 204 no content
                         return HTTPNoContent()
                 else:
-                    raise HTTPNotFound(RESOURCE_NOTFOUND.format(self.get_obj_url(obj_id)))
+                    raise HTTPNotFound(RESOURCE_NOT_FOUND.format(self.get_obj_url(obj_id)))
             else:
                 raise HTTPForbidden(NOT_AUTHORIZED)
         else:
@@ -294,7 +316,7 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
                     # returns 204 no content
                     return HTTPNoContent()
                 else:
-                    raise HTTPNotFound(RESOURCE_NOTFOUND.format(self.get_obj_url(obj_id)))
+                    raise HTTPNotFound(RESOURCE_NOT_FOUND.format(self.get_obj_url(obj_id)))
             else:
                 raise HTTPForbidden(NOT_AUTHORIZED)
         else:
@@ -311,16 +333,10 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
         creating a new item, we don't need an id in the URL.
         """
         if self._meta.authentication.is_authenticated(self.request):
-            # check if we have valid JSON data first
-            try:
-                data = self.request.json_body
-            except ValueError:
-                raise HTTPBadRequest(INVALID_JSON)
-
             # if there is an id, fetch the object so we can check if it exists.
             # if obj is None, create a new instance using _meta.object_class
-            if 'id' in data:
-                obj = self.get_obj(data['id'])
+            if 'id' in self.request.validated:
+                obj = self.get_obj(self.request.validated['id'])
                 obj_exists = obj is not None
                 if not obj_exists:
                     obj = self._meta.object_class()
@@ -329,7 +345,7 @@ class ApiBase(object, metaclass=DeclarativeMetaclass):
                 obj = self._meta.object_class()
 
             # create bundle based on data, obj should be None unless it exists
-            bundle = self.build_bundle(obj=obj, data=data)
+            bundle = self.build_bundle(obj=obj, data=self.request.validated)
 
             # check if we are allowed to create objects for this resource
             if self._meta.authorization.create_detail(bundle.obj, bundle):
@@ -452,7 +468,11 @@ class ModelApi(ApiBase):
         obj.delete()
 
     def save_obj(self, obj):
-        obj.save()
+        try:
+            obj.save(flush=True)
+        except IntegrityError as ex:
+            description = str(ex.orig).split('\n')[0]
+            self.request.errors.add('constraint', ex.__class__.__name__, description)
 
     def dehydrate(self, bundle):
         """
@@ -466,9 +486,7 @@ class ModelApi(ApiBase):
 
     def hydrate(self, bundle):
         """
-        Dehydrate deserializes the bundle.data dict into bundle.obj and puts
-        this object into the DBSession, this saves the object at the end of
-        the request using the pyramid_tm tween.
+        Dehydrate deserializes the bundle.data dict into bundle.obj.
 
         :param bundle: :class:`pyramidcms.api.Bundle` object.
         :returns: :class:`pyramidcms.api.Bundle` object.

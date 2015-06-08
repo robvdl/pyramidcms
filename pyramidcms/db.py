@@ -2,9 +2,8 @@ import re
 import datetime
 import transaction
 
-import dateutil
 from sqlalchemy import inspect, engine_from_config
-from sqlalchemy import Column, Integer, Date, DateTime
+from sqlalchemy import Column, Integer
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.orm.collections import InstrumentedList
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
@@ -223,15 +222,20 @@ class BaseModel(object):
         """
         self.objects.filter(id=self.id).delete()
 
-    def save(self, commit=False):
+    def save(self, flush=False, commit=False):
         """
         Save current model instance to database.
 
         This just wraps the DBSession.add() function from SQLAlchemy.
 
+        :param flush: Will also flush the DBSession (used by API)
         :param commit: Will also commit transaction (required in pcms shell)
         """
         DBSession.add(self)
+
+        # This is used by the API to save the object before pyramid_tm
+        if flush:
+            DBSession.flush()
 
         # Manually commit, this is probably going to be a temporary thing.
         # When in "pcms shell", after .save() we must manually commit.
@@ -285,32 +289,19 @@ class BaseModel(object):
         Simple deserialize previously serialized data into current
         model instance.
 
-        Does not handle any relationships yet.
+        Note that the data dict going in, is expected to come from
+        Colander Schema from the API, so we shouldn't need to do
+        any field type conversion here.
 
-        :param data: dictionary of previously serialized data
+        :param data: dictionary of data from a Colander Schema.
         """
         decoded_data = {}
         model_fields = self.orm_fields
-        attr_names = set([attr.key for attr, col in model_fields])
 
-        # work out what fields are not allowed (not on the model)
-        # set difference (this works since dict_keys is a set in Python 3)
-        unknown_fields = data.keys() - attr_names
-        if len(unknown_fields) > 0:
-            raise ValueError('Fields are not in the model: {}'.format(unknown_fields))
-
-        # loop over the fields, convert to expected types
+        # copy only model fields, no conversion should be necessary
         for attr, column in model_fields:
             if attr.key in data:
-                encoded_value = data[attr.key]
-                field_type = type(column.type)
-
-                if field_type in (Date, DateTime):
-                    decoded_value = dateutil.parser.parse(encoded_value)
-                else:
-                    decoded_value = encoded_value
-
-                decoded_data[attr.key] = decoded_value
+                decoded_data[attr.key] = data[attr.key]
 
         # update model instance fields
         for k, v in decoded_data.items():

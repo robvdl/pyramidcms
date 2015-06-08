@@ -69,7 +69,7 @@ class ModelApiTests(TestCase):
 
     def test_save_obj(self):
         """
-        The save_obj method should just call .save() on the object.
+        The save_obj method should just call .save(flush=True) on the object.
         """
         request = testing.DummyRequest()
         api = MockModelApi(request)
@@ -77,7 +77,7 @@ class ModelApiTests(TestCase):
 
         api.save_obj(obj)
 
-        obj.save.assert_called_with()
+        obj.save.assert_called_with(flush=True)
 
     def test_dehydrate(self):
         """

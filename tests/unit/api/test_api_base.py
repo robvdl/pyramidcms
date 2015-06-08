@@ -388,7 +388,7 @@ class ApiBaseTest(TestCase):
         data = {'name': 'admin'}
         request = testing.DummyRequest()
         request.matchdict = {'id': 10}
-        request.json_body = data
+        request.validated = data
         request.errors = []
 
         api = MockNumberApi(request)
@@ -410,7 +410,7 @@ class ApiBaseTest(TestCase):
         data = {'name': 'admin'}
         request = testing.DummyRequest()
         request.matchdict = {'id': 10}
-        request.json_body = data
+        request.validated = data
         request.errors = []
 
         api = MockNumberApi(request)
@@ -424,27 +424,6 @@ class ApiBaseTest(TestCase):
         self.assertDictEqual(bundle.data, {'id': 10, 'name': 'admin'})
         self.assertTrue(save_mock.called)
 
-    def test_put__invalid_json(self):
-        """
-        When invalid json data is sent to the API put method, a 400
-        bad request should be raised.
-        """
-        # a property needs to be created on the class, must be cleaned up later
-        testing.DummyRequest.json_body = PropertyMock(side_effect=ValueError)
-        request = testing.DummyRequest()
-        request.matchdict = {'id': 10}
-
-        api = MockNumberApi(request)
-        save_mock = Mock()
-        api.save_obj = save_mock
-
-        # if request.json_body raises a ValueError, we get a BadRequest
-        with self.assertRaises(HTTPBadRequest):
-            api.put()
-
-        # must not forget to remove our property for other tests
-        delattr(testing.DummyRequest, 'json_body')
-
     def test_put__validation_errors(self):
         """
         If request.errors contains errors, save_obj() should not be called.
@@ -453,7 +432,7 @@ class ApiBaseTest(TestCase):
         data = {'name': 'admin'}
         request = testing.DummyRequest()
         request.matchdict = {'id': 10}
-        request.json_body = data
+        request.validated = data
         request.errors = [{
             'name': 'username',
             'location': 'field',
@@ -480,7 +459,7 @@ class ApiBaseTest(TestCase):
         data = {'name': 'admin'}
         request = testing.DummyRequest()
         request.matchdict = {'id': 10}
-        request.json_body = data
+        request.validated = data
         api = MockNumberApi(request)
         api.get_obj = Mock(return_value=None)
 
@@ -495,7 +474,7 @@ class ApiBaseTest(TestCase):
         data = {'name': 'admin'}
         request = testing.DummyRequest()
         request.matchdict = {'id': 10}
-        request.json_body = data
+        request.validated = data
         api = MockNumberApi(request)
 
         auth_mock = Mock()
@@ -524,7 +503,7 @@ class ApiBaseTest(TestCase):
         data = {'name': 'admin'}
         request = testing.DummyRequest()
         request.matchdict = {'id': 10}
-        request.json_body = data
+        request.validated = data
         api = MockNumberApi(request)
 
         auth_mock = Mock()
@@ -552,7 +531,7 @@ class ApiBaseTest(TestCase):
         # test data to create object
         data = {'name': 'admin'}
         request = testing.DummyRequest()
-        request.json_body = data
+        request.validated = data
         request.errors = []
 
         api = MockNumberApi(request)
@@ -573,7 +552,7 @@ class ApiBaseTest(TestCase):
         # test data to create object
         data = {'id': 10, 'name': 'admin'}
         request = testing.DummyRequest()
-        request.json_body = data
+        request.validated = data
         request.errors = []
 
         api = MockNumberApi(request)
@@ -599,7 +578,7 @@ class ApiBaseTest(TestCase):
         # test data to create object
         data = {'id': 10, 'name': 'admin'}
         request = testing.DummyRequest()
-        request.json_body = data
+        request.validated = data
 
         api = MockNumberApi(request)
         save_mock = Mock()
@@ -625,7 +604,7 @@ class ApiBaseTest(TestCase):
         # test data to create object
         data = {'name': 'admin'}
         request = testing.DummyRequest()
-        request.json_body = data
+        request.validated = data
         request.errors = []
 
         api = MockNumberApi(request)
@@ -642,26 +621,6 @@ class ApiBaseTest(TestCase):
 
         MockNumberApi._meta.objects_class = backup_object_class
 
-    def test_collection_post__invalid_json(self):
-        """
-        When invalid json data is sent to the API collection_post method, a 400
-        bad request should be raised.
-        """
-        # a property needs to be created on the class, must be cleaned up later
-        testing.DummyRequest.json_body = PropertyMock(side_effect=ValueError)
-        request = testing.DummyRequest()
-
-        api = MockNumberApi(request)
-        save_mock = Mock()
-        api.save_obj = save_mock
-
-        # if request.json_body raises a ValueError, we get a BadRequest
-        with self.assertRaises(HTTPBadRequest):
-            api.collection_post()
-
-        # must not forget to remove our property for other tests
-        delattr(testing.DummyRequest, 'json_body')
-
     def test_collection_post__validation_error(self):
         """
         If request.errors contains errors, save_obj() should not be called.
@@ -669,7 +628,7 @@ class ApiBaseTest(TestCase):
         # test data to create object
         data = {'name': 'admin'}
         request = testing.DummyRequest()
-        request.json_body = data
+        request.validated = data
         request.errors = [{
             'name': 'username',
             'location': 'field',
@@ -695,7 +654,7 @@ class ApiBaseTest(TestCase):
         # some test data to update
         data = {'name': 'admin'}
         request = testing.DummyRequest()
-        request.json_body = data
+        request.validated = data
         api = MockNumberApi(request)
 
         auth_mock = Mock()
@@ -726,7 +685,7 @@ class ApiBaseTest(TestCase):
         # some test data to update
         data = {'name': 'admin'}
         request = testing.DummyRequest()
-        request.json_body = data
+        request.validated = data
         api = MockNumberApi(request)
 
         auth_mock = Mock()
