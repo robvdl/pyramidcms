@@ -1,6 +1,7 @@
 from unittest import TestCase
 from unittest.mock import patch, Mock, MagicMock
 
+import colander
 from pyramid import testing
 from pyramid.httpexceptions import HTTPBadRequest, HTTPForbidden, HTTPNotFound,\
     HTTPConflict
@@ -22,6 +23,15 @@ class MockObject(object):
 
         for key, val in data.items():
             setattr(self, key, val)
+
+
+class MockNumberSchema(colander.Schema):
+    """
+    This is used by the api.schema test.
+
+    We only really need one field for this test.
+    """
+    id = colander.SchemaNode(colander.Integer(), missing=colander.drop)
 
 
 @cms_resource(resource_name='simple')
@@ -48,6 +58,7 @@ class MockNumberApi(ApiBase):
 
     class Meta:
         limit = 10
+        schema = MockNumberSchema
         authorization = Authorization()
 
     def get_obj_list(self):
@@ -808,3 +819,26 @@ class ApiBaseTest(TestCase):
         # don't check the exception message, as we can't set it in a test
         with self.assertRaises(HTTPForbidden):
             api.collection_get()
+
+    def test_schema(self):
+        """
+        The schema property ensures the colander schema only gets applied
+        to PUT and POST requests.
+        """
+        # GET should not work and get an empty schema
+        request = testing.DummyRequest()
+        request.method = 'GET'
+        api = MockNumberApi(request)
+        self.assertEqual(len(api.schema.get_attributes()), 0)
+
+        # POST should get the schema defined in the meta class
+        request = testing.DummyRequest()
+        request.method = 'POST'
+        api = MockNumberApi(request)
+        self.assertEqual(len(api.schema.get_attributes()), 1)
+
+        # PUT should also get the schema applied from the meta class
+        request = testing.DummyRequest()
+        request.method = 'PUT'
+        api = MockNumberApi(request)
+        self.assertEqual(len(api.schema.get_attributes()), 1)
