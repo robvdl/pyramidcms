@@ -1,9 +1,10 @@
 from colander import Schema, SchemaNode, Integer, String, Boolean, DateTime,\
-    List, Length, drop
+    Length, drop
 
 from pyramidcms.api import ModelApi, cms_resource
 from pyramidcms.api.authorization import ACLAuthorization
 from pyramidcms.api.authentication import SessionAuthentication
+from pyramidcms.api.validation.fields import Many2Many
 from pyramidcms.models import User, Group, Permission
 
 
@@ -21,7 +22,7 @@ class UserSchema(Schema):
     is_superuser = SchemaNode(Boolean(), missing=drop)
     date_joined = SchemaNode(DateTime(), missing=drop)
     last_login = SchemaNode(DateTime(), missing=drop)
-    groups = SchemaNode(List(), missing=drop)
+    groups = SchemaNode(Many2Many(Group), missing=drop)
 
 
 class GroupSchema(Schema):
@@ -30,7 +31,7 @@ class GroupSchema(Schema):
     """
     id = SchemaNode(Integer(), missing=drop)
     name = SchemaNode(String(), validator=Length(max=100), missing=drop)
-    permissions = SchemaNode(List(), missing=drop)
+    permissions = SchemaNode(Many2Many(Permission), missing=drop)
 
 
 class PermissionSchema(Schema):

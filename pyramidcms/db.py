@@ -146,7 +146,8 @@ class BaseModel(object):
         mapper = inspect(self.__class__)
         return [col.name for col in mapper.mapped_table.c]
 
-    def get_column_for_attr(self, attr):
+    @staticmethod
+    def get_field_for_attr(attr):
         """
         Given the attribute, try to find the matching column object.
 
@@ -194,7 +195,7 @@ class BaseModel(object):
         fields = []
         for attr in mapper.attrs:
             # Try to get the matching column object for this attribute.
-            col = self.get_column_for_attr(attr)
+            field = self.get_field_for_attr(attr)
 
             # Older versions of SQL Alchemy use RelationProperty
             if attr.__class__.__name__ in ('RelationProperty', 'RelationshipProperty'):
@@ -206,13 +207,13 @@ class BaseModel(object):
             elif attr.__class__.__name__ == 'ColumnProperty':
                 # Don't include foreign key fields directly like "user_id",
                 # these are already handled by the relationship "user" instead.
-                if col.foreign_keys:
+                if field.foreign_keys:
                     continue
 
             else:
                 raise TypeError('Unknown attribute type')
 
-            fields.append((attr, col))
+            fields.append((attr, field))
 
         return fields
 
@@ -258,7 +259,7 @@ class BaseModel(object):
         """
         fields_dict = {}
 
-        for attr, column in self.orm_fields:
+        for attr, field in self.orm_fields:
             attr_name = attr.key
             value = getattr(self, attr_name)
 
@@ -296,10 +297,9 @@ class BaseModel(object):
         :param data: dictionary of data from a Colander Schema.
         """
         decoded_data = {}
-        model_fields = self.orm_fields
 
         # copy only model fields, no conversion should be necessary
-        for attr, column in model_fields:
+        for attr, field in self.orm_fields:
             if attr.key in data:
                 decoded_data[attr.key] = data[attr.key]
 
