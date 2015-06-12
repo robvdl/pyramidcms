@@ -84,7 +84,7 @@ class ForeignKey(DBField):
         return fk_obj
 
 
-class Many2Many(DBField, colander.List):
+class Many2Many(DBField):
     """
     The purpose of the Many2Many colander field, is to take in a list
     of model id's as input and turn that into a list of model instances.
@@ -95,7 +95,8 @@ class Many2Many(DBField, colander.List):
     """
 
     def __init__(self, model, **kwargs):
-        DBField.__init__(self, model)
+        super().__init__(model)
+        self.list_field = colander.List()
 
         if self.type in (String, Text):
             self.field = colander.String(**kwargs)
@@ -132,7 +133,7 @@ class Many2Many(DBField, colander.List):
         :return: List of model objects
         """
         # deserialize the list, so we don't have to validate that ourselves
-        raw_ids = colander.List.deserialize(self, node, cstruct)
+        raw_ids = self.list_field.deserialize(node, cstruct)
 
         # list of id's should never contains a null item
         if None in raw_ids:
