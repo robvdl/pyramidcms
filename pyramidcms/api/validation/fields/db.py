@@ -147,7 +147,8 @@ class Many2Many(DBField, colander.List):
             obj_list = list(DBSession.query(self.model).filter(self.model.id.in_(ids)))
 
             # not all the records in the m2m list exist
-            missing = list(set(ids) - set([obj.id for obj in obj_list]))
+            actual_ids = {obj.id for obj in obj_list}
+            missing = list(set(ids) - actual_ids)
             if missing:
                 raise colander.Invalid(node, "{} objects with id {} do not exist".format(self.model.__name__, missing))
 
