@@ -134,7 +134,7 @@ class Many2Many(DBField):
         """
         # deserialize the list, so we don't have to validate that ourselves
         raw_ids = self.list_field.deserialize(node, cstruct)
-        
+
         # list field.deserialize did not return a valid list
         if raw_ids == colander.null:
             return colander.null
