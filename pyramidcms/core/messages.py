@@ -1,6 +1,0 @@
-NOT_AUTHORIZED = 'Not authorized'
-NOT_AUTHENTICATED = 'Authentication required'
-INVALID_JSON = 'Invalid JSON data'
-RESOURCE_NOT_FOUND = 'Resource {} does not exist'
-RESOURCE_EXISTS = 'Resource {} already exists'
-INVALID_PAGE = 'Invalid page number'

@@ -1,5 +1,0 @@
-include *.ini *.rst *.txt *.cfg
-recursive-include pyramidcms/alembic *
-recursive-include pyramidcms/static *
-recursive-include pyramidcms/templates *
-recursive-include requirements *
